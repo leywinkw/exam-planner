@@ -1,12 +1,12 @@
-"""Guess topic difficulty (1-5, hours = difficulty) from the exam and topic names.
+"""Подбор сложности темы (1-5, часов столько же) по названию экзамена и темы.
 
-Everything is plain dicts of lower-case word stems, so it is easy to extend:
-a stem matches when it occurs inside the lower-cased name.
+Всё держится на двух словарях с основами слов в нижнем регистре:
+основа подходит, если она встречается внутри названия.
 """
 
-DEFAULT_DIFFICULTY = 3
+DEFAULT_DIFFICULTY = 3  # сложность, если предмет в словаре не нашёлся
 
-# exam (subject) stem -> base difficulty
+# словарь 1: основа названия предмета -> базовая сложность
 SUBJECT_BASE = {
     "математ": 4, "алгебр": 4, "геометр": 3, "анализ": 4, "статистик": 3,
     "физик": 4, "хими": 4, "биолог": 3, "информат": 3, "программ": 3,
@@ -17,7 +17,7 @@ SUBJECT_BASE = {
     "обществозн": 3, "физкультур": 1, "обж": 1,
 }
 
-# topic stem -> change of difficulty
+# словарь 2: основа слова в названии темы -> поправка к сложности (плюс или минус)
 TOPIC_SHIFT = {
     "введени": -2, "обзор": -1, "основ": -1, "базов": -1, "общ": -1, "истори": -1,
     "понят": -1, "определен": -1,
@@ -29,14 +29,15 @@ TOPIC_SHIFT = {
 
 
 def estimate_difficulty(exam_name, topic_name):
-    """Return difficulty 1-5: subject base (default 3) plus topic-word shifts."""
+    """Возвращает сложность 1-5: база предмета (по умолчанию 3) плюс поправки по словам темы."""
     exam = str(exam_name).lower()
     topic = str(topic_name).lower()
     level = DEFAULT_DIFFICULTY
+    # берём первый подходящий предмет; не нашли - остаётся сложность по умолчанию
     for stem, base in SUBJECT_BASE.items():
         if stem in exam:
             level = base
             break
-    # each stem counts once, so repeated words cannot run away
+    # каждая основа учитывается один раз; итог ограничиваем числами от 1 до 5
     level += sum(shift for stem, shift in TOPIC_SHIFT.items() if stem in topic)
     return max(1, min(5, level))

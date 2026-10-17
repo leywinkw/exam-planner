@@ -18,7 +18,7 @@ from demo import sample_planner  # noqa: E402
 from planner.storage import Storage  # noqa: E402
 
 CODE = ["planner", "ui", "tests", "examples"]
-FILES = ["main.py", "demo.py", "screenshots.py", "README.md", "pytest.ini", "requirements-dev.txt"]
+FILES = ["main.py", "demo.py", "screenshots.py", "code_screens.py", "README.md", "pytest.ini", "requirements-dev.txt"]
 DOCS = ["Презентация_Планировщик_экзаменов.pptx", "Отчёт_Планировщик_экзаменов.docx", "Речь_для_выступления.md"]
 
 

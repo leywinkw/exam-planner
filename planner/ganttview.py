@@ -5,12 +5,12 @@ TODO_BAR, REVISION_BAR, DONE_ROW, RISK_ROW = "todo", "revision", "done", "risk"
 
 
 def gantt_rows(planner, at_risk=()):
-    """Rows for a Gantt chart: dicts with exam, name, start, end, kind.
+    """Строки для диаграммы Ганта: словари с ключами exam, name, start, end, kind.
 
-    Planned topics and revision days get a bar (start..end); done and
-    at-risk topics get a row without dates. Sorted by exam date, then start.
+    У запланированных тем и дней повторения есть полоска (start..end); у выполненных
+    и не поместившихся тем строка без дат. Порядок: по дате события, потом по началу.
     """
-    span = {}  # (exam, topic) -> [first_day, last_day]
+    span = {}  # (событие, тема) -> [первый день, последний день]
     for day, items in planner.plan.items():
         for exam, topic, _ in items:
             first_last = span.setdefault((exam, topic), [day, day])

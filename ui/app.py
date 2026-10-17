@@ -19,11 +19,12 @@ KIND_LABELS = {"Экзамен": EXAM, "Контрольная": CONTROL}
 
 
 def short(name):
-    """Event name for narrow columns."""
+    """Название события для узких колонок (префикс контрольной сокращается до «КР»)."""
     return name.replace(CONTROL_PREFIX, "КР · ")
 
 
 def plural_days(n):
+    """Склоняет слово «день» по числу: 1 день, 2 дня, 5 дней."""
     if n % 10 == 1 and n % 100 != 11:
         return f"{n} день"
     if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14):
@@ -32,7 +33,7 @@ def plural_days(n):
 
 
 def card(parent, **pack):
-    """White panel with a thin border; returns the inner frame to put widgets in."""
+    """Белая панель с тонкой рамкой; возвращает внутренний фрейм, в который кладутся виджеты."""
     outer = tk.Frame(parent, bg=CARD, highlightbackground=theme.BORDER, highlightthickness=1)
     outer.pack(**pack)
     inner = ttk.Frame(outer, padding=16)
@@ -41,10 +42,13 @@ def card(parent, **pack):
 
 
 class App(ttk.Frame):
+    """Главное окно: слева формы и списки, справа вкладки с календарём и диаграммой Ганта."""
+
     def __init__(self, root, storage=None):
         super().__init__(root, style="Page.TFrame")
         self.root = root
         self.storage = storage or Storage("data")
+        # при запуске читаем сохранённые данные; если файлы битые, warnings сообщит об этом
         self.planner, warnings = self.storage.load()
         self.today = date.today()
         self.year, self.month = self.today.year, self.today.month
@@ -52,7 +56,7 @@ class App(ttk.Frame):
         self.topic_ids = {}
         self.exam_ids = {}
         self.note = ""
-        self.at_risk = self.planner.build_plan(self.today)
+        self.at_risk = self.planner.build_plan(self.today)  # темы, не поместившиеся в срок (красным)
 
         theme.apply_style(self.root)
         self._build()
@@ -61,7 +65,7 @@ class App(ttk.Frame):
         if warnings:
             messagebox.showwarning("Данные", "\n".join(warnings))
 
-    # --- layout --------------------------------------------------------
+    # --- построение окна -----------------------------------------------
     def _build(self):
         header = ttk.Frame(self, style="Header.TFrame", padding=(24, 14))
         header.pack(fill="x")
@@ -192,9 +196,9 @@ class App(ttk.Frame):
                                    selectforeground=TEXT)
         self.day_list.pack(fill="x")
 
-    # --- actions -------------------------------------------------------
+    # --- действия пользователя -----------------------------------------
     def _run(self, action):
-        """Run an action; show planner errors in a dialog instead of crashing."""
+        """Выполняет действие; ошибки планировщика показывает в диалоге, а не роняет программу."""
         try:
             action()
         except PlannerError as error:
@@ -203,6 +207,7 @@ class App(ttk.Frame):
         return True
 
     def _changed(self, replanned=False, note=""):
+        """После любого изменения: пересчитывает план, сохраняет данные и перерисовывает окно."""
         self.note = note
         self.today = date.today()
         if not replanned:
@@ -249,6 +254,7 @@ class App(ttk.Frame):
         if not event:
             return messagebox.showinfo("Темы", "Сначала добавьте экзамен или контрольную")
         taken = [t.name for t in self.planner.topics.values() if t.exam == event]
+        # окно модальное: ждём, пока пользователь отметит темы и закроет его
         dialog = MultiTopicDialog(self.root, event, taken)
         self.root.wait_window(dialog)
         errors, count = [], 0
@@ -264,7 +270,7 @@ class App(ttk.Frame):
             self._changed(note=f"Добавлено тем: {count}.")
 
     def update_dropdowns(self):
-        """Fill the dropdown lists: subjects not added yet, typical topics of the chosen event."""
+        """Заполняет выпадающие списки: ещё не добавленные предметы и типовые темы выбранного события."""
         self.exam_name["values"] = subjects(taken=self.planner.exams)
         taken = [t.name for t in self.planner.topics.values() if t.exam == self.topic_exam.get()]
         self.topic_name["values"] = topics_for(self.topic_exam.get(), taken)
@@ -292,6 +298,7 @@ class App(ttk.Frame):
             self._changed()
 
     def set_limit(self):
+        # вызывается по Enter и при уходе из поля; прежнее значение игнорируем
         if self.limit.get() == str(self.planner.daily_limit):
             return
         if self._run(lambda: self.planner.set_daily_limit(self.limit.get())):
@@ -308,6 +315,7 @@ class App(ttk.Frame):
             self.chunk.set(self.planner.max_chunk)
 
     def replan(self):
+        # сам пересчёт делает Planner.replan, окно только показывает результат
         moved, at_risk = self.planner.replan(date.today())
         self.at_risk = at_risk
         self._changed(replanned=True)
@@ -327,13 +335,14 @@ class App(ttk.Frame):
         self.draw_calendar()
         self.draw_day()
 
-    # --- drawing -------------------------------------------------------
+    # --- отрисовка -----------------------------------------------------
     @staticmethod
     def _selected(tree):
         selection = tree.selection()
         return selection[0] if selection else None
 
     def refresh(self):
+        """Заново заполняет таблицы, календарь, диаграмму и строку состояния по текущим данным."""
         events = sorted(self.planner.exams.values(), key=lambda e: e.date)
         self.exam_tree.delete(*self.exam_tree.get_children())
         self.exam_ids = {}
@@ -388,6 +397,7 @@ class App(ttk.Frame):
         for col, name in enumerate(WEEKDAYS):
             ttk.Label(self.grid_frame, text=name, style="Muted.TLabel", anchor="center").grid(
                 row=0, column=col, sticky="ew", pady=(0, 4))
+        # даты экзаменов и контрольных -> тип события, чтобы раскрасить их клетки
         marks = {e.date: e.kind for e in self.planner.exams.values()}
         for row, week in enumerate(month_weeks(self.year, self.month), start=1):
             for col, number in enumerate(week):
@@ -405,6 +415,7 @@ class App(ttk.Frame):
         else:
             color = load_color(hours, self.planner.daily_limit)
             caption = f"{hours} ч" if hours else " "
+        # рамка клетки: тёмная у выбранного дня, цветная у сегодняшнего, у остальных сливается с клеткой
         border = color
         if day == self.selected_day:
             border = TEXT

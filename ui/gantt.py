@@ -21,7 +21,7 @@ RISK = "#b91c1c"
 
 
 class GanttChart(ttk.Frame):
-    """Gantt chart on a tk.Canvas: one row per topic, days along the x axis."""
+    """Диаграмма Ганта на tk.Canvas: строка на каждую тему, по горизонтали дни."""
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -40,6 +40,7 @@ class GanttChart(ttk.Frame):
         self.redraw()
 
     def redraw(self):
+        """Рисует диаграмму заново: сетка дней, полоски тем, линии событий и линия «сегодня»."""
         canvas = self.canvas
         canvas.delete("all")
         if self.data is None:
@@ -57,9 +58,10 @@ class GanttChart(ttk.Frame):
         days = (last - first).days + 1
         width = max(canvas.winfo_width(), 400)
         day_w = max(16, (width - LABEL_W - 30) / days)
-        step = max(1, math.ceil(46 / day_w))  # label every `step` days so labels do not overlap
+        step = max(1, math.ceil(46 / day_w))  # подпись даты не на каждый день, чтобы подписи не налезали друг на друга
 
         def x_of(day):
+            # x-координата начала дня на оси времени
             return LABEL_W + (day - first).days * day_w
 
         height = HEAD_H + len(rows) * ROW_H + 10
@@ -97,7 +99,7 @@ class GanttChart(ttk.Frame):
             x = x_of(exam.date) + day_w / 2
             line = CONTROL_LINE if exam.kind == CONTROL else EXAM_LINE
             canvas.create_line(x, 16, x, height, fill=line, width=2)
-            # two label levels, so names of neighbouring events do not overlap
+            # подписи событий в два яруса, чтобы названия соседних событий не накладывались
             canvas.create_text(x - 4, 16 + (index % 2) * 14, anchor="ne", fill=line,
                                font=("Helvetica", 10, "bold"),
                                text=exam.name.replace("Контрольная · ", "КР · "))

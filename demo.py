@@ -1,10 +1,10 @@
-"""Opens the planner with sample data (own temp folder, your real data is not touched).
+"""Открывает планировщик с примерными данными (отдельная временная папка, ваши данные не затрагиваются).
 
-Used to take screenshots for the presentation:
-    python3 demo.py calendar   # month calendar with a selected day
-    python3 demo.py gantt      # Gantt chart tab
-    python3 demo.py dialog     # "several topics" dialog
-    python3 demo.py error      # error message for a wrong date
+Нужно для скриншотов в презентацию:
+    python3 demo.py calendar   # календарь с выбранным днём
+    python3 demo.py gantt      # вкладка с диаграммой Ганта
+    python3 demo.py dialog     # окно «Несколько тем»
+    python3 demo.py error      # сообщение об ошибке при неверной дате
 """
 import shutil
 import sys

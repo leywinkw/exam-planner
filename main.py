@@ -1,3 +1,4 @@
+"""Запуск программы: python3 main.py"""
 import tkinter as tk
 from pathlib import Path
 

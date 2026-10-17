@@ -1,10 +1,13 @@
+# Свои исключения: окно ловит PlannerError и показывает сообщение вместо аварийного завершения.
+
+
 class PlannerError(Exception):
-    """Base class for all planner errors; the message is shown to the user."""
+    """Общий предок всех наших ошибок; текст сообщения показывается пользователю."""
 
 
 class ValidationError(PlannerError):
-    """User input is not acceptable."""
+    """Пользователь ввёл недопустимое значение (дата, сложность, название и т. п.)."""
 
 
 class StorageError(PlannerError):
-    """Data files cannot be read or written."""
+    """Файлы данных не удалось прочитать или записать."""

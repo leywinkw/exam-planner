@@ -42,6 +42,10 @@
 - Deck: 13 slides (new 'Работа программы по шагам'); 'no third-party packages' claims removed from deck, speech and report.
 - GitHub: public repo leywinkw/exam-planner (https://github.com/leywinkw/exam-planner).
 
+## Russian comments + code screenshots (2026-10-17)
+- Comments and docstrings in planner/, ui/, tools and tests are now in Russian (user request; more comments where unclear).
+- code_screens.py renders 6 images of real code (syntax highlight, real line numbers, located by text markers) into docs/screens/code_*.png; deck has 6 code slides (19 slides total).
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.

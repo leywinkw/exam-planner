@@ -39,6 +39,7 @@
 ## Скриншоты и демо
 - `python3 demo.py calendar|gantt|dialog|error` открывает окно с примерными данными.
 - `python3 screenshots.py` сам проходит сценарий и сохраняет скриншоты окна в `docs/screens` (macOS).
+- `python3 code_screens.py` рисует и сохраняет скриншоты самого кода (с подсветкой) в `docs/screens`.
 - `python3 examples/io_demo.py` печатает примеры ввода и вывода без окна.
 
 ## Репозиторий

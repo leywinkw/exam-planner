@@ -5,9 +5,9 @@ TEXT_COLOR = "#0f172a"
 
 
 class _HintMixin:
-    """Shows a grey hint inside the field while it is empty.
+    """Серая подсказка внутри пустого поля.
 
-    get() returns "" while the hint is shown, so callers never see the hint text.
+    Пока подсказка показана, get() возвращает "", поэтому остальной код никогда не видит её текст.
     """
 
     def _init_hint(self, hint):
@@ -50,7 +50,7 @@ class HintEntry(_HintMixin, ttk.Entry):
 
 
 class HintCombobox(_HintMixin, ttk.Combobox):
-    """Editable dropdown: pick a ready value or type your own."""
+    """Выпадающий список с подсказкой: можно выбрать готовое значение или ввести своё."""
 
     def __init__(self, parent, hint, **options):
         super().__init__(parent, **options)
@@ -58,7 +58,7 @@ class HintCombobox(_HintMixin, ttk.Combobox):
         self.bind("<<ComboboxSelected>>", lambda _e: self._picked(), add="+")
 
     def _picked(self):
-        # the dropdown wrote the value into the field: it is real text now
+        # список записал значение в поле: теперь это настоящий текст, а не подсказка
         if self._showing:
             self._showing = False
         self.configure(foreground=TEXT_COLOR)

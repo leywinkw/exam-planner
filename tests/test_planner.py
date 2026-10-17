@@ -21,7 +21,7 @@ def make_planner():
     return p
 
 
-# --- validation -----------------------------------------------------------
+# --- проверка ввода -----------------------------------------------------------
 @pytest.mark.parametrize("text", ["", "abc", "32.01.2026", "2026/01/01"])
 def test_bad_dates_rejected(text):
     with pytest.raises(ValidationError):
@@ -69,7 +69,7 @@ def test_remove_exam_removes_topics():
     assert all(t.exam != "Math" for t in p.topics.values())
 
 
-# --- planning -------------------------------------------------------------
+# --- построение плана -------------------------------------------------------------
 def test_daily_limit_never_exceeded():
     p = make_planner()
     p.build_plan(TODAY)
@@ -146,7 +146,7 @@ def test_empty_planner():
     assert p.plan == {}
 
 
-# --- replan ---------------------------------------------------------------
+# --- пересчёт плана ---------------------------------------------------------------
 def test_replan_moves_missed_topic_forward():
     p = make_planner()
     p.build_plan(TODAY)
@@ -177,7 +177,7 @@ def test_replan_warns_when_late():
     assert {t.name for t in risk} == {"A", "B"}
 
 
-# --- storage --------------------------------------------------------------
+# --- хранение данных --------------------------------------------------------------
 def test_csv_roundtrip(tmp_path):
     p = make_planner()
     p.set_status("Math", "Series", DONE)
@@ -220,7 +220,7 @@ def test_binary_file_does_not_crash(tmp_path):
     assert loaded.exams == {} and len(warnings) == 1
 
 
-# --- review fixes -----------------------------------------------------------
+# --- исправления по замечаниям ревью -----------------------------------------------------------
 def test_close_exams_keep_revision_day_clean():
     p = Planner(daily_limit=4)
     p.add_exam("B", TODAY + timedelta(days=5), today=TODAY)

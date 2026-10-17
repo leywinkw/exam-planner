@@ -2,12 +2,12 @@ from tkinter import ttk
 
 FONT = "Helvetica Neue"
 
-BG = "#eef2f7"        # window background
-CARD = "#ffffff"      # cards
+BG = "#eef2f7"        # фон окна
+CARD = "#ffffff"      # карточки
 BORDER = "#dbe3ee"
 TEXT = "#0f172a"
 MUTED = "#64748b"
-ACCENT = "#4f46e5"    # indigo
+ACCENT = "#4f46e5"    # основной цвет (индиго)
 ACCENT_DARK = "#4338ca"
 ACCENT_SOFT = "#e0e7ff"
 HEADER = "#1e1b4b"

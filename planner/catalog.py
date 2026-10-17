@@ -1,8 +1,9 @@
-"""Common subjects and their typical topics, offered in dropdown lists.
+"""Типовые предметы и их темы для выпадающих списков.
 
-Names are chosen so planner.estimator recognises them (difficulty is guessed from the name).
+Названия подобраны так, чтобы их узнавал planner.estimator (по ним угадывается сложность).
 """
 
+# словарь {предмет: [типовые темы]}
 CATALOG = {
     "Математика": ["Введение в математику", "Функции и графики", "Пределы", "Производные",
                    "Интегралы", "Ряды", "Матрицы и определители", "Системы уравнений",
@@ -35,15 +36,16 @@ CATALOG = {
 
 
 def subjects(taken=()):
-    """Subject names not yet used as exams."""
+    """Предметы, которые ещё не добавлены как экзамены."""
     return [name for name in CATALOG if name not in taken]
 
 
 def topics_for(exam_name, taken=()):
-    """Typical topics for an exam name (exact or contained match), minus the taken ones."""
+    """Типовые темы для названия экзамена (точное совпадение или предмет внутри названия) без уже добавленных."""
     wanted = str(exam_name).strip().lower()
     if not wanted:
         return []
+    # «Контрольная · Математика» тоже находит «Математика»: предмет может быть внутри названия
     for subject, topics in CATALOG.items():
         low = subject.lower()
         if wanted == low or low in wanted or (len(wanted) >= 4 and wanted in low):

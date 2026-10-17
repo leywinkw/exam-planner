@@ -1,10 +1,10 @@
-"""Takes the screenshots for the presentation and the report from the program itself.
+"""Делает скриншоты окна для презентации и отчёта прямо из программы.
 
     python3 screenshots.py
 
-It opens the real window with sample data, walks through a short scenario and saves every step
-to docs/screens/ (PNG, the window only). The window is captured by the program itself through
-the macOS window server, so no screen-recording permission is needed. macOS only.
+Скрипт открывает настоящее окно с примерными данными, проходит короткий сценарий и сохраняет
+каждый шаг в docs/screens/ (PNG, только окно). Окно снимает сама программа через оконный сервер
+macOS, поэтому разрешение на запись экрана не нужно. Только macOS.
 """
 import ctypes
 import ctypes.util
