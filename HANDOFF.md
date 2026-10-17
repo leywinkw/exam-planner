@@ -37,6 +37,11 @@
 - Screenshots 01-04 from the user are embedded. Gantt label overlap and truncated event names were fixed AFTER 02_gantt.png / 01_calendar.png were taken: user should retake them (python3 demo.py gantt / calendar), then rerun docs/build scripts and build_submission.py.
 - Teacher name set on the report title page (Алибалаева Лейла Ибрагимовна). Submitted as is; 02_gantt.png still shows the old label overlap.
 
+## Screenshots from code (2026-10-17)
+- screenshots.py: opens the real window with sample data, walks a scenario and saves PNGs of the window itself (ctypes + macOS window server, no screen-recording permission). Gantt: event labels in two levels, HEAD_H 68, LABEL_W 300; trees shorter (left column fits). 04_error.png is still the user's manual shot (native alert).
+- Deck: 13 slides (new 'Работа программы по шагам'); 'no third-party packages' claims removed from deck, speech and report.
+- GitHub: gh is logged in as xrz902, no remote yet; waiting for the user (repo name, visibility, co-author account). Do not fake commit authorship for the second author.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.

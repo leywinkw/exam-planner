@@ -102,7 +102,7 @@ class App(ttk.Frame):
         self.exam_kind.pack(side="left", padx=8)
         ttk.Button(row, text="Добавить", style="Accent.TButton",
                    command=self.add_exam).pack(side="right")
-        self.exam_tree = ttk.Treeview(parent, columns=("date", "left"), height=4, selectmode="browse")
+        self.exam_tree = ttk.Treeview(parent, columns=("date", "left"), height=3, selectmode="browse")
         for col, text, width, anchor in (("#0", "Событие", 205, "w"), ("date", "Дата", 82, "center"),
                                          ("left", "Осталось", 72, "center")):
             self.exam_tree.heading(col, text=text)
@@ -129,7 +129,7 @@ class App(ttk.Frame):
         ttk.Button(row, text="Добавить", style="Accent.TButton",
                    command=self.add_topic).pack(side="right", padx=(0, 6))
 
-        self.topic_tree = ttk.Treeview(parent, columns=("exam", "diff", "status"), height=6,
+        self.topic_tree = ttk.Treeview(parent, columns=("exam", "diff", "status"), height=4,
                                        selectmode="browse")
         for col, text, width in (("#0", "Тема", 140), ("exam", "Событие", 120),
                                  ("diff", "Сл.", 34), ("status", "Статус", 62)):

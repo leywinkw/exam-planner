@@ -57,7 +57,7 @@ def main():
 
     root = tk.Tk()
     root.title("Планировщик подготовки к экзаменам")
-    root.geometry("1240x820+40+40")
+    root.geometry("1240x860+40+40")
     app = App(root, storage)
 
     def prepare():

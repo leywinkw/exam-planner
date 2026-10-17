@@ -8,7 +8,7 @@ from planner.ganttview import DONE_ROW, REVISION_BAR, RISK_ROW, TODO_BAR, gantt_
 
 LABEL_W = 300
 ROW_H = 30
-HEAD_H = 34
+HEAD_H = 68
 BAR_COLORS = {TODO_BAR: "#818cf8", REVISION_BAR: "#c4b5fd"}
 EXAM_LINE = "#ef4444"
 CONTROL_LINE = "#8b5cf6"
@@ -93,11 +93,12 @@ class GanttChart(ttk.Frame):
                 canvas.create_text(x_of(first) + 6, top + ROW_H / 2, anchor="w", fill=color,
                                    font=("Helvetica", 10, "italic"), text=note)
 
-        for exam in exams:
+        for index, exam in enumerate(exams):
             x = x_of(exam.date) + day_w / 2
             line = CONTROL_LINE if exam.kind == CONTROL else EXAM_LINE
-            canvas.create_line(x, HEAD_H - 4, x, height, fill=line, width=2)
-            canvas.create_text(x - 4, HEAD_H + 2, anchor="ne", fill=line,
+            canvas.create_line(x, 16, x, height, fill=line, width=2)
+            # two label levels, so names of neighbouring events do not overlap
+            canvas.create_text(x - 4, 16 + (index % 2) * 14, anchor="ne", fill=line,
                                font=("Helvetica", 10, "bold"),
                                text=exam.name.replace("Контрольная · ", "КР · "))
         x = x_of(today) + day_w / 2
