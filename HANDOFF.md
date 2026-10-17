@@ -40,7 +40,7 @@
 ## Screenshots from code (2026-10-17)
 - screenshots.py: opens the real window with sample data, walks a scenario and saves PNGs of the window itself (ctypes + macOS window server, no screen-recording permission). Gantt: event labels in two levels, HEAD_H 68, LABEL_W 300; trees shorter (left column fits). 04_error.png is still the user's manual shot (native alert).
 - Deck: 13 slides (new 'Работа программы по шагам'); 'no third-party packages' claims removed from deck, speech and report.
-- GitHub: gh is logged in as xrz902, no remote yet; waiting for the user (repo name, visibility, co-author account). Do not fake commit authorship for the second author.
+- GitHub: private repo xrz902/exam-planner. The second author is to be invited as a collaborator (GitHub username not given yet).
 
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
