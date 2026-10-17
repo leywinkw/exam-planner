@@ -26,10 +26,8 @@ class MultiTopicDialog(tk.Toplevel):
             for index, name in enumerate(options):
                 var = tk.BooleanVar(value=False)
                 self.vars.append((name, var))
-                tk.Checkbutton(box, text=name, variable=var, bg=theme.CARD, anchor="w",
-                               activebackground=theme.CARD, font=theme.font(12),
-                               highlightthickness=0).grid(row=index // 2, column=index % 2,
-                                                          sticky="w", padx=(0, 18), pady=1)
+                ttk.Checkbutton(box, text=name, variable=var, style="Topic.TCheckbutton").grid(
+                    row=index // 2, column=index % 2, sticky="w", padx=(0, 24), pady=3)
         else:
             ttk.Label(self, text="Для этого названия нет готового списка — впишите темы ниже.",
                       style="Muted.TLabel").pack(anchor="w")

@@ -44,6 +44,8 @@ def apply_style(root):
     style.map("Accent.TButton", background=[("active", ACCENT_DARK)])
     style.configure("Danger.TButton", foreground=DANGER)
 
+    style.configure("Topic.TCheckbutton", background=CARD, foreground=TEXT, font=font(12))
+    style.map("Topic.TCheckbutton", background=[("active", CARD)], foreground=[("active", TEXT)])
     style.configure("TEntry", fieldbackground="white", bordercolor=BORDER, padding=5)
     style.configure("TCombobox", fieldbackground="white", bordercolor=BORDER, padding=5,
                     arrowcolor=MUTED)
