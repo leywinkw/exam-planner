@@ -4,14 +4,13 @@ HINT_COLOR = "#94a3b8"
 TEXT_COLOR = "#0f172a"
 
 
-class HintEntry(ttk.Entry):
-    """Entry that shows a grey hint inside itself while it is empty.
+class _HintMixin:
+    """Shows a grey hint inside the field while it is empty.
 
     get() returns "" while the hint is shown, so callers never see the hint text.
     """
 
-    def __init__(self, parent, hint, **options):
-        super().__init__(parent, **options)
+    def _init_hint(self, hint):
         self.hint = hint
         self._showing = False
         self.bind("<FocusIn>", lambda _e: self._hide())
@@ -42,3 +41,30 @@ class HintEntry(ttk.Entry):
     def insert(self, index, text):
         self._hide()
         super().insert(index, text)
+
+
+class HintEntry(_HintMixin, ttk.Entry):
+    def __init__(self, parent, hint, **options):
+        super().__init__(parent, **options)
+        self._init_hint(hint)
+
+
+class HintCombobox(_HintMixin, ttk.Combobox):
+    """Editable dropdown: pick a ready value or type your own."""
+
+    def __init__(self, parent, hint, **options):
+        super().__init__(parent, **options)
+        self._init_hint(hint)
+        self.bind("<<ComboboxSelected>>", lambda _e: self._picked(), add="+")
+
+    def _picked(self):
+        # the dropdown wrote the value into the field: it is real text now
+        if self._showing:
+            self._showing = False
+        self.configure(foreground=TEXT_COLOR)
+        self.selection_clear()
+
+    def set(self, value):
+        self._showing = False
+        self.configure(foreground=TEXT_COLOR)
+        super().set(value)

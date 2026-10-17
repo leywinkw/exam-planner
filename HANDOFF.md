@@ -23,6 +23,9 @@
 ## Auto difficulty (2026-10-17)
 - planner/estimator.py (dict of stems), Planner.add_topic/set_difficulty accept "авто"; UI: combobox "авто/1-5" + button to change selected topic. 55 tests green. Dictionary is a first guess: user may want to extend it for their real subjects.
 
+## Dropdowns (2026-10-17)
+- planner/catalog.py: 13 subjects with typical topics; editable HintCombobox for exam and topic (ui/widgets.py). 59 tests green. Look of the window not seen by me.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.

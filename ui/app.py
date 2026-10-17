@@ -2,12 +2,13 @@ import tkinter as tk
 from datetime import date
 from tkinter import messagebox, ttk
 
+from planner.catalog import subjects, topics_for
 from planner.calview import EXAM_COLOR, MONTHS, WEEKDAYS, load_color, month_weeks, shift_month
 from planner.errors import PlannerError
 from planner.models import DONE, TODO, parse_date
 from planner.storage import Storage
 from ui.gantt import GanttChart
-from ui.widgets import HintEntry
+from ui.widgets import HintCombobox, HintEntry
 
 BG = "#ffffff"
 PANEL = "#f8fafc"
@@ -77,7 +78,7 @@ class App(ttk.Frame):
         ttk.Label(parent, text="Экзамены", style="H.TLabel").pack(anchor="w")
         row = ttk.Frame(parent)
         row.pack(fill="x", pady=4)
-        self.exam_name = HintEntry(row, "Название экзамена", width=18)
+        self.exam_name = HintCombobox(row, "Выберите или введите экзамен", width=24)
         self.exam_name.pack(side="left")
         self.exam_date = HintEntry(row, "ДД.ММ.ГГГГ", width=11)
         self.exam_date.pack(side="left", padx=6)
@@ -97,7 +98,8 @@ class App(ttk.Frame):
         row.pack(fill="x", pady=4)
         self.topic_exam = ttk.Combobox(row, state="readonly", width=14)
         self.topic_exam.pack(side="left")
-        self.topic_name = HintEntry(row, "Название темы", width=18)
+        self.topic_exam.bind("<<ComboboxSelected>>", lambda _e: self.update_dropdowns())
+        self.topic_name = HintCombobox(row, "Выберите или введите тему", width=24)
         self.topic_name.pack(side="left", padx=6)
         row2 = ttk.Frame(parent)
         row2.pack(fill="x", pady=2)
@@ -213,6 +215,12 @@ class App(ttk.Frame):
             self._changed(note=f"«{topic.name}»: сложность {topic.difficulty} {how} "
                                f"({topic.hours} ч). Её можно поменять кнопкой под списком тем.")
 
+    def update_dropdowns(self):
+        """Fill the dropdown lists: subjects not added yet, typical topics of the chosen exam."""
+        self.exam_name["values"] = subjects(taken=self.planner.exams)
+        taken = [t.name for t in self.planner.topics.values() if t.exam == self.topic_exam.get()]
+        self.topic_name["values"] = topics_for(self.topic_exam.get(), taken)
+
     def change_difficulty(self):
         key = self._selected_topic()
         if key and self._run(lambda: self.planner.set_difficulty(*key, self.topic_diff.get())):
@@ -291,6 +299,7 @@ class App(ttk.Frame):
                 topic.exam, topic.difficulty, STATUS_TEXT[topic.status]))
             self.topic_ids[iid] = topic.key
         self.limit.set(self.planner.daily_limit)
+        self.update_dropdowns()
         self.draw_calendar()
         self.draw_day()
         self.gantt.draw(self.planner, self.at_risk, self.today)
