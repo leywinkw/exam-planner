@@ -21,4 +21,5 @@
 - 43 tests green. User saw the window: looks fine.
 
 ## Next
-1. Close: client-style handover not needed (course project). Optional: Gantt chart or more tkinter polish.
+1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
+2. Close; optional polish.

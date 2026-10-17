@@ -6,6 +6,7 @@ from planner.calview import EXAM_COLOR, MONTHS, WEEKDAYS, load_color, month_week
 from planner.errors import PlannerError
 from planner.models import DONE, TODO, parse_date
 from planner.storage import Storage
+from ui.gantt import GanttChart
 
 BG = "#ffffff"
 PANEL = "#f8fafc"
@@ -58,7 +59,17 @@ class App(ttk.Frame):
         self._build_exams(left)
         self._build_topics(left)
         self._build_settings(left)
-        self._build_calendar(right)
+        self.status = ttk.Label(right, style="Muted.TLabel", wraplength=560, justify="left")
+        self.status.pack(side="bottom", anchor="w", pady=(8, 0))
+        tabs = ttk.Notebook(right)
+        tabs.pack(fill="both", expand=True)
+        calendar_tab = ttk.Frame(tabs, padding=(0, 8))
+        gantt_tab = ttk.Frame(tabs, padding=(0, 8))
+        tabs.add(calendar_tab, text="Календарь нагрузки")
+        tabs.add(gantt_tab, text="Диаграмма Ганта")
+        self.gantt = GanttChart(gantt_tab)
+        self.gantt.pack(fill="both", expand=True)
+        self._build_calendar(calendar_tab)
 
     def _build_exams(self, parent):
         ttk.Label(parent, text="Экзамены", style="H.TLabel").pack(anchor="w")
@@ -145,8 +156,6 @@ class App(ttk.Frame):
                                    highlightbackground="#e2e8f0", font=("Helvetica", 12),
                                    activestyle="none")
         self.day_list.pack(fill="x")
-        self.status = ttk.Label(parent, style="Muted.TLabel", wraplength=520, justify="left")
-        self.status.pack(anchor="w", pady=(8, 0))
 
     # --- actions -------------------------------------------------------
     def _run(self, action):
@@ -265,6 +274,7 @@ class App(ttk.Frame):
         self.limit.set(self.planner.daily_limit)
         self.draw_calendar()
         self.draw_day()
+        self.gantt.draw(self.planner, self.at_risk, self.today)
         if self.at_risk:
             self.status.configure(foreground="#b91c1c", text="Не помещаются до экзамена: " + ", ".join(
                 f"{t.name} ({t.exam})" for t in self.at_risk))

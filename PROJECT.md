@@ -32,9 +32,10 @@ status: planned
   - Mark a topic done / missed.
   - Workload calendar: month grid, cell colour = hours that day (low to over the limit), click a day to
     see its topics.
+  - Gantt chart tab (tk.Canvas): a bar per topic, revision bars, exam lines, today line, done/at-risk rows.
   - CSV load/save (`exams.csv`, `topics.csv`) in a data folder; broken/missing file handled gracefully.
   - Custom exceptions and try/except around input, dates and file I/O.
-- Out: editing in place, accounts, notifications, cloud sync, mobile app, Gantt chart (maybe later), packaging to .exe.
+- Out: editing in place, accounts, notifications, cloud sync, mobile app, packaging to .exe.
 
 ## Acceptance criteria
 - [ ] Adding an exam with a past date, empty name, or bad date format shows a Russian error message and does not crash.
