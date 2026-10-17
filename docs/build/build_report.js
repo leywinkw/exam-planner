@@ -108,7 +108,7 @@ const title = [
   new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 80 }, children: [run("Выполнили:")] }),
   new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 80 }, children: [run("Дибривный Павел, группа ИСТ04")] }),
   new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 240 }, children: [run("Салазде Георгий, группа ИСТ03")] }),
-  new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 1500 }, children: [run("Проверил: [ФИО преподавателя]")] }),
+  new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 1500 }, children: [run("Проверила: Алибалаева Лейла Ибрагимовна")] }),
   center("2026", { size: 28 }),
   new Paragraph({ children: [new PageBreak()] }),
   center("СОДЕРЖАНИЕ", { size: 32, bold: true, after: 200 }),
