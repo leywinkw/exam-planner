@@ -2,11 +2,13 @@ from datetime import date, timedelta
 
 from planner.errors import ValidationError
 from planner.estimator import estimate_difficulty
-from planner.models import DONE, TODO, Exam, Topic, parse_difficulty
+from planner.models import (CONTROL, CONTROL_PREFIX, DONE, EXAM, TODO, Exam, Topic,
+                            parse_difficulty)
 
 AUTO = "авто"
 DEFAULT_DAILY_LIMIT = 4
-REVISION_HOURS = 2
+DEFAULT_MAX_CHUNK = 2  # most hours of one topic on one day: study is spread over several days
+REVISION_HOURS = {EXAM: 2, CONTROL: 1}
 REVISION = "Повторение"
 
 
@@ -16,11 +18,12 @@ class Planner:
     plan is a dict: {date: [(exam_name, topic_name, hours), ...]}.
     """
 
-    def __init__(self, daily_limit=DEFAULT_DAILY_LIMIT):
+    def __init__(self, daily_limit=DEFAULT_DAILY_LIMIT, max_chunk=DEFAULT_MAX_CHUNK):
         self.exams = {}
         self.topics = {}
         self.plan = {}
         self.set_daily_limit(daily_limit)
+        self.set_max_chunk(max_chunk)
 
     # --- editing -------------------------------------------------------
     def set_daily_limit(self, value):
@@ -32,13 +35,25 @@ class Planner:
             raise ValidationError("Лимит часов в день: от 1 до 16")
         self.daily_limit = limit
 
-    def add_exam(self, name, exam_date, today=None):
+    def set_max_chunk(self, value):
+        try:
+            chunk = int(value)
+        except (TypeError, ValueError):
+            raise ValidationError("Часов на тему в день должно быть целым числом") from None
+        if not 1 <= chunk <= 8:
+            raise ValidationError("Часов на одну тему в день: от 1 до 8")
+        self.max_chunk = chunk
+
+    def add_exam(self, name, exam_date, today=None, kind=EXAM):
         today = today or date.today()
-        exam = Exam(name, exam_date)
+        name = str(name).strip()
+        if kind == CONTROL and name and not name.startswith(CONTROL_PREFIX):
+            name = CONTROL_PREFIX + name
+        exam = Exam(name, exam_date, kind)
         if exam.date <= today:
-            raise ValidationError("Дата экзамена должна быть в будущем")
+            raise ValidationError("Дата должна быть в будущем")
         if exam.name in self.exams:
-            raise ValidationError("Такой экзамен уже есть")
+            raise ValidationError("Такое событие уже есть")
         self.exams[exam.name] = exam
         return exam
 
@@ -112,7 +127,7 @@ class Planner:
         for exam in upcoming:
             eve = exam.date - timedelta(days=1)
             if eve >= today:
-                add(eve, exam.name, REVISION, min(REVISION_HOURS, self.daily_limit))
+                add(eve, exam.name, REVISION, min(REVISION_HOURS[exam.kind], self.daily_limit))
 
         at_risk = []
         for exam in upcoming:
@@ -120,17 +135,17 @@ class Planner:
             todo = [t for t in self.topics.values()
                     if t.exam == exam.name and t.status == TODO]
             todo.sort(key=lambda t: (-t.difficulty, t.name))
-            day = today
             for topic in todo:
+                # at most max_chunk hours of one topic per day: it continues on the next days
                 left = topic.hours
+                day = today
                 while left > 0 and day <= last_study_day:
                     free = self.daily_limit - load.get(day, 0)
-                    if day in blocked or free <= 0:
-                        day += timedelta(days=1)
-                        continue
-                    chunk = min(free, left)
-                    add(day, exam.name, topic.name, chunk)
-                    left -= chunk
+                    if day not in blocked and free > 0:
+                        chunk = min(free, left, self.max_chunk)
+                        add(day, exam.name, topic.name, chunk)
+                        left -= chunk
+                    day += timedelta(days=1)
                 if left > 0:
                     at_risk.append(topic)
         self.plan = plan

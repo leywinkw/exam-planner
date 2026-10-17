@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from planner.errors import PlannerError, StorageError, ValidationError
-from planner.models import Topic, parse_date
+from planner.models import EXAM, Topic, parse_date
 from planner.scheduler import Planner
 
 EXAMS_FILE, TOPICS_FILE, SETTINGS_FILE = "exams.csv", "topics.csv", "settings.csv"
@@ -19,13 +19,13 @@ class Storage:
     def save(self, planner):
         try:
             self.folder.mkdir(parents=True, exist_ok=True)
-            self._write(EXAMS_FILE, ["name", "date"],
-                        [[e.name, e.date.isoformat()] for e in planner.exams.values()])
+            self._write(EXAMS_FILE, ["name", "date", "kind"],
+                        [[e.name, e.date.isoformat(), e.kind] for e in planner.exams.values()])
             self._write(TOPICS_FILE, ["exam", "name", "difficulty", "status", "planned_day"],
                         [[t.exam, t.name, t.difficulty, t.status,
                           t.planned_day.isoformat() if t.planned_day else ""]
                          for t in planner.topics.values()])
-            self._write(SETTINGS_FILE, ["key", "value"], [["daily_limit", planner.daily_limit]])
+            self._write(SETTINGS_FILE, ["key", "value"], [["daily_limit", planner.daily_limit], ["max_chunk", planner.max_chunk]])
         except OSError as error:
             raise StorageError(f"Не удалось сохранить данные: {error.strerror}") from error
 
@@ -35,7 +35,8 @@ class Storage:
         warnings = []
         try:
             for row in self._read(EXAMS_FILE):
-                planner.add_exam(row["name"], parse_date(row["date"]), today=date.min)
+                planner.add_exam(row["name"], parse_date(row["date"]), today=date.min,
+                                 kind=row.get("kind") or EXAM)
             for row in self._read(TOPICS_FILE):
                 planned = parse_date(row["planned_day"]) if row.get("planned_day") else None
                 topic = Topic(row["exam"], row["name"], row["difficulty"], row["status"], planned)
@@ -45,6 +46,8 @@ class Storage:
             for row in self._read(SETTINGS_FILE):
                 if row["key"] == "daily_limit":
                     planner.set_daily_limit(row["value"])
+                elif row["key"] == "max_chunk":
+                    planner.set_max_chunk(row["value"])
         except (PlannerError, KeyError, csv.Error, UnicodeDecodeError, OSError) as error:
             self._backup_broken()
             warnings.append(f"Файлы данных повреждены ({error}). Копии сохранены как *.bak, "

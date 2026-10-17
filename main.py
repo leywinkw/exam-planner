@@ -8,7 +8,8 @@ from ui.app import App
 def main():
     root = tk.Tk()
     root.title("Планировщик подготовки к экзаменам")
-    root.minsize(980, 640)
+    root.geometry("1240x820")
+    root.minsize(1100, 760)
     App(root, Storage(Path(__file__).parent / "data"))
     root.mainloop()
 

@@ -26,6 +26,10 @@
 ## Dropdowns (2026-10-17)
 - planner/catalog.py: 13 subjects with typical topics; editable HintCombobox for exam and topic (ui/widgets.py). 59 tests green. Look of the window not seen by me.
 
+## Spread + controls + redesign (2026-10-17)
+- Planner: max_chunk (hours of one topic per day, default 2), control works (Exam.kind, name prefix 'Контрольная · ', 1 h revision), settings.csv has max_chunk, exams.csv has kind. ui/theme.py (palette/ttk styles), ui/dialogs.py (multi-topic), app.py rewritten with header, cards, settings bar at the bottom of the right card. 70 tests green.
+- Visual check: first screenshot (old left layout) showed 'ПЛАН' cut off and a black day list; fixed (settings moved right, listbox colours set) but NOT re-checked visually; Gantt tab not seen at all.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.

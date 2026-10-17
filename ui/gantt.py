@@ -3,14 +3,16 @@ import tkinter as tk
 from datetime import timedelta
 from tkinter import ttk
 
+from planner.models import CONTROL
 from planner.ganttview import DONE_ROW, REVISION_BAR, RISK_ROW, TODO_BAR, gantt_rows
 
-LABEL_W = 210
-ROW_H = 28
+LABEL_W = 250
+ROW_H = 30
 HEAD_H = 34
-BAR_COLORS = {TODO_BAR: "#60a5fa", REVISION_BAR: "#a78bfa"}
+BAR_COLORS = {TODO_BAR: "#818cf8", REVISION_BAR: "#c4b5fd"}
 EXAM_LINE = "#ef4444"
-TODAY_LINE = "#2563eb"
+CONTROL_LINE = "#8b5cf6"
+TODAY_LINE = "#4f46e5"
 WEEKEND = "#f1f5f9"
 GRID = "#e2e8f0"
 TEXT = "#0f172a"
@@ -77,8 +79,9 @@ class GanttChart(ttk.Frame):
             kind = row["kind"]
             color = RISK if kind == RISK_ROW else (MUTED if kind == DONE_ROW else TEXT)
             label = f'{row["name"]} · {row["exam"]}'
-            if len(label) > 28:
-                label = label[:27] + "…"
+            label = label.replace("Контрольная · ", "КР · ")
+            if len(label) > 34:
+                label = label[:33] + "…"
             canvas.create_text(8, top + ROW_H / 2, anchor="w", fill=color,
                                font=("Helvetica", 11), text=label)
             if row["start"] is not None:
@@ -92,9 +95,11 @@ class GanttChart(ttk.Frame):
 
         for exam in exams:
             x = x_of(exam.date) + day_w / 2
-            canvas.create_line(x, HEAD_H - 4, x, height, fill=EXAM_LINE, width=2)
-            canvas.create_text(x - 4, HEAD_H + 2, anchor="ne", fill=EXAM_LINE,
-                               font=("Helvetica", 10, "bold"), text=exam.name)
+            line = CONTROL_LINE if exam.kind == CONTROL else EXAM_LINE
+            canvas.create_line(x, HEAD_H - 4, x, height, fill=line, width=2)
+            canvas.create_text(x - 4, HEAD_H + 2, anchor="ne", fill=line,
+                               font=("Helvetica", 10, "bold"),
+                               text=exam.name.replace("Контрольная · ", "КР · "))
         x = x_of(today) + day_w / 2
         canvas.create_line(x, HEAD_H - 4, x, height, fill=TODAY_LINE, width=2, dash=(4, 3))
         canvas.create_text(x + 4, 6, anchor="nw", fill=TODAY_LINE,

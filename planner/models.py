@@ -6,6 +6,8 @@ DATE_FORMATS = ("%d.%m.%Y", "%Y-%m-%d")
 MIN_DIFFICULTY, MAX_DIFFICULTY = 1, 5
 
 TODO, DONE = "todo", "done"
+EXAM, CONTROL = "exam", "control"
+CONTROL_PREFIX = "Контрольная · "
 
 
 def parse_date(text):
@@ -37,14 +39,19 @@ def clean_name(value, what):
 
 
 class Exam:
-    def __init__(self, name, exam_date):
+    """An exam or a control work (kind); both have a date and own topics."""
+
+    def __init__(self, name, exam_date, kind=EXAM):
         self.name = clean_name(name, "название экзамена")
+        if kind not in (EXAM, CONTROL):
+            raise ValidationError("Некорректный тип события")
+        self.kind = kind
         if not isinstance(exam_date, date):
             raise ValidationError("Некорректная дата экзамена")
         self.date = exam_date
 
     def __repr__(self):
-        return f"Exam({self.name!r}, {self.date.isoformat()})"
+        return f"Exam({self.name!r}, {self.date.isoformat()}, {self.kind})"
 
 
 class Topic:

@@ -32,6 +32,7 @@ status: planned
   - Mark a topic done / missed.
   - Workload calendar: month grid, cell colour = hours that day (low to over the limit), click a day to
     see its topics.
+  - Control works (own date and several topics, multi-topic dialog); topics are spread over days (max hours per topic per day, default 2).
   - Dropdowns: common subjects and typical topics (planner/catalog.py), custom text still allowed.
   - Auto difficulty: dict of subject/topic word stems -> difficulty (1-5), user can override per topic.
   - Gantt chart tab (tk.Canvas): a bar per topic, revision bars, exam lines, today line, done/at-risk rows.
