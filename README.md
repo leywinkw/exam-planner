@@ -42,7 +42,7 @@
 - `python3 examples/io_demo.py` печатает примеры ввода и вывода без окна.
 
 ## Репозиторий
-https://github.com/leywinkw/exam-planner (приватный).
+https://github.com/leywinkw/exam-planner.
 
 ## Авторы
 - Дибривный Павел, группа ИСТ04
