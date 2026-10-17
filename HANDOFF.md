@@ -30,6 +30,11 @@
 - Planner: max_chunk (hours of one topic per day, default 2), control works (Exam.kind, name prefix 'Контрольная · ', 1 h revision), settings.csv has max_chunk, exams.csv has kind. ui/theme.py (palette/ttk styles), ui/dialogs.py (multi-topic), app.py rewritten with header, cards, settings bar at the bottom of the right card. 70 tests green.
 - Visual check: first screenshot (old left layout) showed 'ПЛАН' cut off and a black day list; fixed (settings moved right, listbox colours set) but NOT re-checked visually; Gantt tab not seen at all.
 
+## Defence materials (2026-10-17)
+- docs/Презентация_*.pptx (12 slides + speaker notes), docs/Отчёт_*.docx, docs/Речь_для_выступления.md (+ Q&A), examples/io_demo.py -> docs/io_examples.txt, demo.py (sample data for screenshots), dist/exam-planner-submission.zip (code + sample data + docs; unzip-tested, 70 tests pass).
+- Built with pptxgenjs/docx installed in the session scratchpad (not in the project); docs/build/README.txt explains rebuild. Files pass validate.py but were NOT rendered or looked at (no LibreOffice, screen capture denied).
+- WAITING: user takes 4 screenshots (docs/screens/README.txt), fills in name/group on the title slide and in the report, then rebuild deck, report and zip.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.
