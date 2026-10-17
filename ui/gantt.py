@@ -6,7 +6,7 @@ from tkinter import ttk
 from planner.models import CONTROL
 from planner.ganttview import DONE_ROW, REVISION_BAR, RISK_ROW, TODO_BAR, gantt_rows
 
-LABEL_W = 250
+LABEL_W = 300
 ROW_H = 30
 HEAD_H = 34
 BAR_COLORS = {TODO_BAR: "#818cf8", REVISION_BAR: "#c4b5fd"}
@@ -70,7 +70,7 @@ class GanttChart(ttk.Frame):
                 canvas.create_rectangle(x, HEAD_H, x + day_w, height, fill=WEEKEND, outline="")
             canvas.create_line(x, HEAD_H - 6, x, height, fill=GRID)
             if i % step == 0:
-                canvas.create_text(x + 2, HEAD_H - 16, anchor="w", fill=MUTED,
+                canvas.create_text(x + 2, HEAD_H - 11, anchor="w", fill=MUTED,
                                    font=("Helvetica", 10), text=day.strftime("%d.%m"))
 
         for index, row in enumerate(rows):
@@ -80,8 +80,8 @@ class GanttChart(ttk.Frame):
             color = RISK if kind == RISK_ROW else (MUTED if kind == DONE_ROW else TEXT)
             label = f'{row["name"]} · {row["exam"]}'
             label = label.replace("Контрольная · ", "КР · ")
-            if len(label) > 34:
-                label = label[:33] + "…"
+            if len(label) > 30:
+                label = label[:29] + "…"
             canvas.create_text(8, top + ROW_H / 2, anchor="w", fill=color,
                                font=("Helvetica", 11), text=label)
             if row["start"] is not None:
@@ -102,7 +102,7 @@ class GanttChart(ttk.Frame):
                                text=exam.name.replace("Контрольная · ", "КР · "))
         x = x_of(today) + day_w / 2
         canvas.create_line(x, HEAD_H - 4, x, height, fill=TODAY_LINE, width=2, dash=(4, 3))
-        canvas.create_text(x + 4, 6, anchor="nw", fill=TODAY_LINE,
+        canvas.create_text(x + 4, 1, anchor="nw", fill=TODAY_LINE,
                            font=("Helvetica", 10, "bold"), text="сегодня")
         canvas.create_line(LABEL_W, 0, LABEL_W, height, fill=GRID)
         canvas.configure(scrollregion=(0, 0, LABEL_W + days * day_w + 20, height))

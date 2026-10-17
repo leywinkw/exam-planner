@@ -103,8 +103,8 @@ class App(ttk.Frame):
         ttk.Button(row, text="Добавить", style="Accent.TButton",
                    command=self.add_exam).pack(side="right")
         self.exam_tree = ttk.Treeview(parent, columns=("date", "left"), height=4, selectmode="browse")
-        for col, text, width, anchor in (("#0", "Событие", 170, "w"), ("date", "Дата", 86, "center"),
-                                         ("left", "Осталось", 80, "center")):
+        for col, text, width, anchor in (("#0", "Событие", 205, "w"), ("date", "Дата", 82, "center"),
+                                         ("left", "Осталось", 72, "center")):
             self.exam_tree.heading(col, text=text)
             self.exam_tree.column(col, width=width, anchor=anchor)
         self.exam_tree.pack(fill="x", pady=(10, 6))
@@ -131,8 +131,8 @@ class App(ttk.Frame):
 
         self.topic_tree = ttk.Treeview(parent, columns=("exam", "diff", "status"), height=6,
                                        selectmode="browse")
-        for col, text, width in (("#0", "Тема", 150), ("exam", "Событие", 100),
-                                 ("diff", "Сл.", 36), ("status", "Статус", 66)):
+        for col, text, width in (("#0", "Тема", 140), ("exam", "Событие", 120),
+                                 ("diff", "Сл.", 34), ("status", "Статус", 62)):
             self.topic_tree.heading(col, text=text)
             self.topic_tree.column(col, width=width,
                                    anchor="w" if col in ("#0", "exam") else "center")
