@@ -309,6 +309,7 @@ const children = [
   ...figure("04_error.png", "Сообщение об ошибке при вводе неверной даты", 420),
 
   h1("8. Запуск программы"),
+  body("Код проекта лежит в репозитории на GitHub: https://github.com/leywinkw/exam-planner (приватный, доступ по приглашению)."),
   ...code(["cd exam-planner", "python3 main.py"]),
   body("Нужен Python 3.9 или новее с tkinter (он есть в стандартной установке). Для тестов создайте виртуальное окружение, " +
     "поставьте pytest и запустите pytest. Окно с примерными данными открывает python3 demo.py, а скрипт screenshots.py " +

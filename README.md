@@ -41,6 +41,9 @@
 - `python3 screenshots.py` сам проходит сценарий и сохраняет скриншоты окна в `docs/screens` (macOS).
 - `python3 examples/io_demo.py` печатает примеры ввода и вывода без окна.
 
+## Репозиторий
+https://github.com/leywinkw/exam-planner (приватный).
+
 ## Авторы
 - Дибривный Павел, группа ИСТ04
 - Салазде Георгий, группа ИСТ03
