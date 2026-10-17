@@ -7,6 +7,7 @@ from planner.errors import PlannerError
 from planner.models import DONE, TODO, parse_date
 from planner.storage import Storage
 from ui.gantt import GanttChart
+from ui.widgets import HintEntry
 
 BG = "#ffffff"
 PANEL = "#f8fafc"
@@ -75,13 +76,12 @@ class App(ttk.Frame):
         ttk.Label(parent, text="Экзамены", style="H.TLabel").pack(anchor="w")
         row = ttk.Frame(parent)
         row.pack(fill="x", pady=4)
-        self.exam_name = ttk.Entry(row, width=16)
+        self.exam_name = HintEntry(row, "Название экзамена", width=18)
         self.exam_name.pack(side="left")
-        self.exam_date = ttk.Entry(row, width=11)
+        self.exam_date = HintEntry(row, "ДД.ММ.ГГГГ", width=11)
         self.exam_date.pack(side="left", padx=6)
         ttk.Button(row, text="Добавить", style="Accent.TButton",
                    command=self.add_exam).pack(side="left")
-        ttk.Label(parent, text="название и дата ДД.ММ.ГГГГ", style="Muted.TLabel").pack(anchor="w")
         self.exam_tree = ttk.Treeview(parent, columns=("date",), height=4, selectmode="browse")
         self.exam_tree.heading("#0", text="Экзамен")
         self.exam_tree.heading("date", text="Дата")
@@ -94,17 +94,18 @@ class App(ttk.Frame):
         ttk.Label(parent, text="Темы", style="H.TLabel").pack(anchor="w", pady=(14, 0))
         row = ttk.Frame(parent)
         row.pack(fill="x", pady=4)
-        self.topic_exam = ttk.Combobox(row, state="readonly", width=12)
+        self.topic_exam = ttk.Combobox(row, state="readonly", width=14)
         self.topic_exam.pack(side="left")
-        self.topic_name = ttk.Entry(row, width=14)
+        self.topic_name = HintEntry(row, "Название темы", width=18)
         self.topic_name.pack(side="left", padx=6)
-        self.topic_diff = ttk.Spinbox(row, from_=1, to=5, width=3)
+        row2 = ttk.Frame(parent)
+        row2.pack(fill="x", pady=2)
+        ttk.Label(row2, text="Сложность (1-5):").pack(side="left")
+        self.topic_diff = ttk.Spinbox(row2, from_=1, to=5, width=3)
         self.topic_diff.set(3)
-        self.topic_diff.pack(side="left")
-        ttk.Button(parent, text="Добавить тему", style="Accent.TButton",
-                   command=self.add_topic).pack(anchor="e", pady=2)
-        ttk.Label(parent, text="экзамен, тема, сложность 1-5 (часы = сложность)",
-                  style="Muted.TLabel").pack(anchor="w")
+        self.topic_diff.pack(side="left", padx=6)
+        ttk.Button(row2, text="Добавить тему", style="Accent.TButton",
+                   command=self.add_topic).pack(side="right")
         self.topic_tree = ttk.Treeview(parent, columns=("exam", "diff", "status"), height=7,
                                        selectmode="browse")
         for col, text, width in (("#0", "Тема", 120), ("exam", "Экзамен", 90),
