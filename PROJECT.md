@@ -32,6 +32,7 @@ status: planned
   - Mark a topic done / missed.
   - Workload calendar: month grid, cell colour = hours that day (low to over the limit), click a day to
     see its topics.
+  - Auto difficulty: dict of subject/topic word stems -> difficulty (1-5), user can override per topic.
   - Gantt chart tab (tk.Canvas): a bar per topic, revision bars, exam lines, today line, done/at-risk rows.
   - CSV load/save (`exams.csv`, `topics.csv`) in a data folder; broken/missing file handled gracefully.
   - Custom exceptions and try/except around input, dates and file I/O.

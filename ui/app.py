@@ -28,6 +28,7 @@ class App(ttk.Frame):
         self.selected_day = self.today
         self.topic_ids = {}
         self.exam_ids = {}
+        self.note = ""
 
         self._style()
         self._build()
@@ -100,9 +101,10 @@ class App(ttk.Frame):
         self.topic_name.pack(side="left", padx=6)
         row2 = ttk.Frame(parent)
         row2.pack(fill="x", pady=2)
-        ttk.Label(row2, text="Сложность (1-5):").pack(side="left")
-        self.topic_diff = ttk.Spinbox(row2, from_=1, to=5, width=3)
-        self.topic_diff.set(3)
+        ttk.Label(row2, text="Сложность:").pack(side="left")
+        self.topic_diff = ttk.Combobox(row2, state="readonly", width=6,
+                                       values=["авто", "1", "2", "3", "4", "5"])
+        self.topic_diff.set("авто")
         self.topic_diff.pack(side="left", padx=6)
         ttk.Button(row2, text="Добавить тему", style="Accent.TButton",
                    command=self.add_topic).pack(side="right")
@@ -118,6 +120,8 @@ class App(ttk.Frame):
         ttk.Button(buttons, text="Готово", command=lambda: self.mark(DONE)).pack(side="left")
         ttk.Button(buttons, text="Не сделано", command=lambda: self.mark(TODO)).pack(side="left", padx=6)
         ttk.Button(buttons, text="Удалить", command=self.remove_topic).pack(side="right")
+        ttk.Button(parent, text="Задать выбранной теме сложность из списка выше",
+                   command=self.change_difficulty).pack(fill="x", pady=(6, 0))
 
     def _build_settings(self, parent):
         ttk.Label(parent, text="План", style="H.TLabel").pack(anchor="w", pady=(14, 0))
@@ -168,7 +172,8 @@ class App(ttk.Frame):
             return False
         return True
 
-    def _changed(self, replanned=False):
+    def _changed(self, replanned=False, note=""):
+        self.note = note
         self.today = date.today()
         if not replanned:
             self.at_risk = self.planner.build_plan(self.today)
@@ -195,11 +200,24 @@ class App(ttk.Frame):
                 self._changed()
 
     def add_topic(self):
+        added = []
+
         def go():
-            self.planner.add_topic(self.topic_exam.get(), self.topic_name.get(), self.topic_diff.get())
+            added.append(self.planner.add_topic(
+                self.topic_exam.get(), self.topic_name.get(), self.topic_diff.get()))
             self.topic_name.delete(0, "end")
         if self._run(go):
-            self._changed()
+            topic = added[0]
+            auto = self.topic_diff.get() == "авто"
+            how = "определена автоматически" if auto else "задана"
+            self._changed(note=f"«{topic.name}»: сложность {topic.difficulty} {how} "
+                               f"({topic.hours} ч). Её можно поменять кнопкой под списком тем.")
+
+    def change_difficulty(self):
+        key = self._selected_topic()
+        if key and self._run(lambda: self.planner.set_difficulty(*key, self.topic_diff.get())):
+            topic = self.planner.topics[key]
+            self._changed(note=f"«{topic.name}»: сложность {topic.difficulty} ({topic.hours} ч).")
 
     def _selected_topic(self):
         key = self.topic_ids.get(self._selected(self.topic_tree))
@@ -277,11 +295,15 @@ class App(ttk.Frame):
         self.draw_day()
         self.gantt.draw(self.planner, self.at_risk, self.today)
         if self.at_risk:
-            self.status.configure(foreground="#b91c1c", text="Не помещаются до экзамена: " + ", ".join(
-                f"{t.name} ({t.exam})" for t in self.at_risk))
+            color = "#b91c1c"
+            text = "Не помещаются до экзамена: " + ", ".join(f"{t.name} ({t.exam})" for t in self.at_risk)
         else:
-            self.status.configure(foreground=MUTED, text="Все темы помещаются в план." if self.planner.topics
-                                  else "Добавьте экзамен и темы, план построится сам.")
+            color = MUTED
+            text = ("Все темы помещаются в план." if self.planner.topics
+                    else "Добавьте экзамен и темы, план построится сам.")
+        if self.note:
+            text = f"{self.note}\n{text}"
+        self.status.configure(foreground=color, text=text)
 
     def draw_calendar(self):
         for child in self.grid_frame.winfo_children():

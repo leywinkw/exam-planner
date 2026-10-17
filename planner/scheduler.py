@@ -1,8 +1,10 @@
 from datetime import date, timedelta
 
 from planner.errors import ValidationError
-from planner.models import DONE, TODO, Exam, Topic
+from planner.estimator import estimate_difficulty
+from planner.models import DONE, TODO, Exam, Topic, parse_difficulty
 
+AUTO = "авто"
 DEFAULT_DAILY_LIMIT = 4
 REVISION_HOURS = 2
 REVISION = "Повторение"
@@ -49,6 +51,8 @@ class Planner:
     def add_topic(self, exam_name, name, difficulty):
         if exam_name not in self.exams:
             raise ValidationError("Сначала добавьте экзамен")
+        if self._is_auto(difficulty):
+            difficulty = estimate_difficulty(exam_name, name)
         topic = Topic(exam_name, name, difficulty)
         if topic.key in self.topics:
             raise ValidationError("Такая тема уже есть в этом экзамене")
@@ -60,6 +64,20 @@ class Planner:
             del self.topics[(exam_name, name)]
         except KeyError:
             raise ValidationError("Тема не найдена") from None
+
+    def set_difficulty(self, exam_name, name, difficulty):
+        """Change difficulty (hours) of a topic; "авто" estimates it from the names again."""
+        topic = self.topics.get((exam_name, name))
+        if topic is None:
+            raise ValidationError("Тема не найдена")
+        if self._is_auto(difficulty):
+            difficulty = estimate_difficulty(exam_name, name)
+        topic.difficulty = parse_difficulty(difficulty)
+        return topic
+
+    @staticmethod
+    def _is_auto(value):
+        return value is None or str(value).strip().lower() in ("", AUTO)
 
     def set_status(self, exam_name, name, status):
         topic = self.topics.get((exam_name, name))
