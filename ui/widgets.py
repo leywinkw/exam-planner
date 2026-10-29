@@ -2,17 +2,14 @@ from tkinter import ttk
 
 HINT_COLOR = "#94a3b8"
 TEXT_COLOR = "#0f172a"
-# клавиши, которые при показанной подсказке ничего не делают (иначе они съели бы текст подсказки)
+# клавиши, которые не работают пока показана подсказка, иначе они бы стирали её
 EDIT_KEYS = {"BackSpace", "Delete", "Left", "Right", "Home", "End", "Up", "Down"}
 
 
 class _HintMixin:
-    """Серая подсказка внутри пустого поля.
-
-    Подсказка видна, пока в поле ничего нет, даже когда оно выбрано: курсор стоит в самом её начале,
-    а первая же введённая буква заменяет подсказку. Пока подсказка показана, get() возвращает "",
-    поэтому остальной код никогда не видит её текст.
-    """
+    # серая подсказка внутри пустого поля
+    # пока она показана, get() возвращает пустую строку, остальной код её не видит
+    # курсор стоит в начале, первая набранная буква заменяет подсказку
 
     def _init_hint(self, hint):
         self.hint = hint
@@ -25,7 +22,7 @@ class _HintMixin:
         self._show()
 
     def _to_start(self):
-        """Пока показана подсказка, курсор всегда в начале поля и ничего не выделено."""
+        # пока подсказка видна, курсор в начале и ничего не выделено
         if self._showing:
             self.selection_clear()
             self.icursor(0)
@@ -35,10 +32,10 @@ class _HintMixin:
         if not self._showing:
             return None
         if event.keysym in EDIT_KEYS:
-            return "break"  # подсказку нельзя стирать и двигать по ней курсор
+            return "break"  # подсказку нельзя стереть и по ней нельзя двигать курсор
         typing = event.char and event.char.isprintable() and not event.state & 0x0C  # без Ctrl и Command
         if typing:
-            self._hide()  # убираем подсказку, а сама буква вставится стандартной обработкой
+            self._hide()  # убираем подсказку, буква вставится сама
         return None
 
     def _show(self):
@@ -60,7 +57,7 @@ class _HintMixin:
     def delete(self, first, last=None):
         self._hide()
         super().delete(first, last)
-        self._show()  # поле опустело: снова подсказка (и при выбранном поле тоже)
+        self._show()  # поле пустое, снова показываем подсказку
 
     def insert(self, index, text):
         self._hide()
@@ -74,7 +71,7 @@ class HintEntry(_HintMixin, ttk.Entry):
 
 
 class HintCombobox(_HintMixin, ttk.Combobox):
-    """Выпадающий список с подсказкой: можно выбрать готовое значение или ввести своё."""
+    # список с подсказкой, можно выбрать значение или ввести своё
 
     def __init__(self, parent, hint, **options):
         super().__init__(parent, **options)
@@ -82,7 +79,7 @@ class HintCombobox(_HintMixin, ttk.Combobox):
         self.bind("<<ComboboxSelected>>", lambda _e: self._picked(), add="+")
 
     def _picked(self):
-        # список записал значение в поле: теперь это настоящий текст, а не подсказка
+        # список вставил значение, теперь это обычный текст
         if self._showing:
             self._showing = False
         self.configure(foreground=TEXT_COLOR)

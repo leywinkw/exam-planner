@@ -6,18 +6,16 @@ from ui import theme
 
 
 class DatePicker(tk.Toplevel):
-    """Маленький календарь под полем ввода даты: нажали на число, и оно вставилось в поле.
-
-    Окно без рамки появляется под полем. Выбрать можно только будущие дни (экзамен не бывает в прошлом).
-    Закрывается после выбора даты, по клику в любом другом месте окна или по Esc (это делает App).
-    """
+    # маленький календарь под полем даты, нажимаешь на число и оно вставляется в поле
+    # выбрать можно только будущие дни
+    # закрывается после выбора, по клику в другом месте или по Esc
 
     def __init__(self, entry, on_pick, start=None):
         super().__init__(entry)
         self.entry, self.on_pick = entry, on_pick
         start = start or date.today()
         self.year, self.month = start.year, start.month
-        self.overrideredirect(True)  # без заголовка и рамки окна
+        self.overrideredirect(True)  # окно без рамки
         self.configure(bg=theme.BORDER)
         self.attributes("-topmost", True)
         body = tk.Frame(self, bg=theme.CARD, padx=10, pady=8)
@@ -36,7 +34,7 @@ class DatePicker(tk.Toplevel):
         self.update_idletasks()
         self.geometry(f"+{entry.winfo_rootx()}+{entry.winfo_rooty() + entry.winfo_height() + 4}")
         self.lift()
-        # клик в любом месте основного окна, кроме календаря и самого поля, закрывает календарь
+        # клик в другом месте окна закрывает календарь
         self._outside_id = entry.winfo_toplevel().bind("<Button-1>", self._outside, add="+")
 
     def _arrow(self, parent, text, delta):

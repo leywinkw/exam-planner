@@ -7,7 +7,7 @@ CARD = "#ffffff"      # карточки
 BORDER = "#dbe3ee"
 TEXT = "#0f172a"
 MUTED = "#64748b"
-ACCENT = "#4f46e5"    # основной цвет (индиго)
+ACCENT = "#4f46e5"    # главный цвет
 ACCENT_DARK = "#4338ca"
 ACCENT_SOFT = "#e0e7ff"
 HEADER = "#1e1b4b"
@@ -46,7 +46,7 @@ def apply_style(root):
 
     style.configure("Topic.TCheckbutton", background=CARD, foreground=TEXT, font=font(12))
     style.map("Topic.TCheckbutton", background=[("active", CARD)], foreground=[("active", TEXT)])
-    # курсор ввода делаем толстым и цветным, чтобы его было видно на светлом поле
+    # курсор делаем толще и цветным, чтобы был виден
     style.configure("TEntry", fieldbackground="white", bordercolor=BORDER, padding=5, insertcolor=ACCENT, insertwidth=2)
     style.configure("TCombobox", fieldbackground="white", bordercolor=BORDER, padding=5,
                     arrowcolor=MUTED, insertcolor=ACCENT, insertwidth=2)

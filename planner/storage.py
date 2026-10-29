@@ -11,13 +11,13 @@ EXAMS_FILE, TOPICS_FILE, SETTINGS_FILE = "exams.csv", "topics.csv", "settings.cs
 
 
 class Storage:
-    """Хранит Planner в трёх CSV-файлах одной папки: exams.csv, topics.csv, settings.csv."""
+    # хранит план в трёх csv файлах, exams.csv, topics.csv и settings.csv
 
     def __init__(self, folder="data"):
         self.folder = Path(folder)
 
     def save(self, planner):
-        """Записывает события, темы и настройки; при ошибке диска выбрасывает StorageError."""
+        # записывает события, темы и настройки, если не вышло, будет StorageError
         try:
             self.folder.mkdir(parents=True, exist_ok=True)
             self._write(EXAMS_FILE, ["name", "date", "kind"],
@@ -31,11 +31,11 @@ class Storage:
             raise StorageError(f"Не удалось сохранить данные: {error.strerror}") from error
 
     def load(self, today=None):
-        """Возвращает (planner, warnings). Битые или недостающие файлы дают пустой план, а не падение."""
+        # читает файлы и возвращает (planner, warnings), если файлы битые, начинаем с пустого плана
         planner = Planner()
         warnings = []
         try:
-            # читаем события; today=date.min, потому что для данных из файла дата в прошлом допустима
+            # читаем события, date.min нужен чтобы старые даты из файла не считались ошибкой
             for row in self._read(EXAMS_FILE):
                 planner.add_exam(row["name"], parse_date(row["date"]), today=date.min,
                                  kind=row.get("kind") or EXAM)
@@ -50,17 +50,17 @@ class Storage:
                     planner.set_daily_limit(row["value"])
                 elif row["key"] == "max_chunk":
                     planner.set_max_chunk(row["value"])
-        # любая проблема с файлами: сохраняем копии .bak и начинаем с пустого плана
+        # если что-то не так с файлами, делаем копии .bak и начинаем с пустого плана
         except (PlannerError, KeyError, csv.Error, UnicodeDecodeError, OSError) as error:
             self._backup_broken()
             warnings.append(f"Файлы данных повреждены ({error}). Копии сохранены как *.bak, "
                             "начинаем с пустого плана")
             return Planner(), warnings
-        planner.build_plan(today)  # сразу строим план по загруженным данным
+        planner.build_plan(today)  # сразу строим план
         return planner, warnings
 
     def _backup_broken(self):
-        """Переименовывает повреждённые файлы в *.csv.bak, чтобы не потерять данные пользователя."""
+        # переименовывает битые файлы в .bak, чтобы не потерять данные
         for filename in (EXAMS_FILE, TOPICS_FILE, SETTINGS_FILE):
             path = self.folder / filename
             if path.exists():
@@ -77,12 +77,12 @@ class Storage:
             writer = csv.writer(file)
             writer.writerow(header)
             writer.writerows(rows)
-        os.replace(temp, path)  # атомарно: сбой посреди записи не оставит наполовину записанный файл
+        os.replace(temp, path)  # подменяем файл целиком, так при сбое не останется половина файла
 
     def _read(self, filename):
         path = self.folder / filename
         if not path.exists():
             return []
-        with open(path, newline="", encoding="utf-8-sig") as file:  # utf-8-sig: Excel добавляет в начало файла служебный символ BOM
+        with open(path, newline="", encoding="utf-8-sig") as file:  # utf-8-sig нужен, потому что Excel добавляет в начало файла служебный символ
             return list(csv.DictReader(file))
 

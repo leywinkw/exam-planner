@@ -6,7 +6,7 @@ from ui import theme
 
 
 class MultiTopicDialog(tk.Toplevel):
-    """Выбор нескольких типовых тем (и своих) для одного экзамена или контрольной."""
+    # окно для выбора сразу нескольких тем (можно дописать свои)
 
     def __init__(self, parent, event_name, taken):
         super().__init__(parent)
@@ -49,5 +49,5 @@ class MultiTopicDialog(tk.Toplevel):
     def confirm(self):
         names = [name for name, var in self.vars if var.get()]
         names += [part.strip() for part in self.extra.get().split(",") if part.strip()]
-        self.result = list(dict.fromkeys(names))  # убираем повторы, порядок сохраняем
+        self.result = list(dict.fromkeys(names))  # убираем повторы, порядок оставляем
         self.destroy()

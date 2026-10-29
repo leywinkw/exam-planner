@@ -5,19 +5,17 @@ from planner.estimator import estimate_difficulty
 from planner.models import (CONTROL, CONTROL_PREFIX, DONE, EXAM, TODO, Exam, Topic,
                             parse_difficulty)
 
-AUTO = "авто"  # значение сложности, при котором её подбирает программа
-DEFAULT_DAILY_LIMIT = 4  # часов учёбы в день по умолчанию
-DEFAULT_MAX_CHUNK = 2  # больше стольки часов одной темы за день не ставим: тема растягивается на несколько дней
-REVISION_HOURS = {EXAM: 2, CONTROL: 1}  # повторение накануне: 2 часа перед экзаменом, 1 перед контрольной
-REVISION = "Повторение"  # так называется «тема» повторения в плане
+AUTO = "авто"  # если сложность «авто», её считает программа
+DEFAULT_DAILY_LIMIT = 4  # часов в день по умолчанию
+DEFAULT_MAX_CHUNK = 2  # сколько часов одной темы можно ставить в один день
+REVISION_HOURS = {EXAM: 2, CONTROL: 1}  # повторение накануне, 2 часа перед экзаменом и 1 перед контрольной
+REVISION = "Повторение"  # так в плане называется повторение
 
 
 class Planner:
-    """Хранит экзамены и темы и строит план по дням.
-
-    exams  - словарь {название: Exam}, topics - словарь {(событие, тема): Topic};
-    plan   - словарь {дата: [(событие, тема, часы), ...]}, его рисуют календарь и диаграмма.
-    """
+    # хранит экзамены, темы и план по дням
+    # exams это словарь {название: Exam}, topics это {(событие, тема): Topic}
+    # plan это словарь {дата: [(событие, тема, часы)]}, по нему рисуются календарь и диаграмма
 
     def __init__(self, daily_limit=DEFAULT_DAILY_LIMIT, max_chunk=DEFAULT_MAX_CHUNK):
         self.exams = {}
@@ -26,9 +24,9 @@ class Planner:
         self.set_daily_limit(daily_limit)
         self.set_max_chunk(max_chunk)
 
-    # --- ввод и изменение данных ---------------------------------------
+    # --- изменение данных ---
     def set_daily_limit(self, value):
-        """Лимит часов учёбы в день: целое число от 1 до 16."""
+        # лимит часов в день, целое число от 1 до 16
         try:
             limit = int(value)
         except (TypeError, ValueError):
@@ -38,7 +36,7 @@ class Planner:
         self.daily_limit = limit
 
     def set_max_chunk(self, value):
-        """Сколько часов одной темы можно ставить в один день: целое число от 1 до 8."""
+        # сколько часов одной темы в день, целое число от 1 до 8
         try:
             chunk = int(value)
         except (TypeError, ValueError):
@@ -48,10 +46,10 @@ class Planner:
         self.max_chunk = chunk
 
     def add_exam(self, name, exam_date, today=None, kind=EXAM):
-        """Добавляет экзамен или контрольную; дата должна быть в будущем, название уникальным."""
+        # добавляет экзамен или контрольную, дата в будущем и название не должно повторяться
         today = today or date.today()
         name = str(name).strip()
-        # у контрольной название получает префикс, чтобы не совпасть с экзаменом по тому же предмету
+        # к названию контрольной добавляем префикс
         if kind == CONTROL and name and not name.startswith(CONTROL_PREFIX):
             name = CONTROL_PREFIX + name
         exam = Exam(name, exam_date, kind)
@@ -66,14 +64,14 @@ class Planner:
         if name not in self.exams:
             raise ValidationError("Экзамен не найден")
         del self.exams[name]
-        # вместе с событием удаляем все его темы (собираем словарь без них)
+        # вместе с событием удаляем его темы
         self.topics = {k: t for k, t in self.topics.items() if t.exam != name}
 
     def add_topic(self, exam_name, name, difficulty):
-        """Добавляет тему к событию; сложность «авто» подбирается по названиям."""
+        # добавляет тему, сложность «авто» считает estimator
         if exam_name not in self.exams:
             raise ValidationError("Сначала добавьте экзамен")
-        # «авто»: сложность подбирает estimator по названию экзамена и темы
+        # если «авто», считаем сложность по названиям
         if self._is_auto(difficulty):
             difficulty = estimate_difficulty(exam_name, name)
         topic = Topic(exam_name, name, difficulty)
@@ -89,7 +87,7 @@ class Planner:
             raise ValidationError("Тема не найдена") from None
 
     def set_difficulty(self, exam_name, name, difficulty):
-        """Меняет сложность (а значит, и часы) темы; «авто» подбирает её заново по названиям."""
+        # меняет сложность темы, «авто» считает её заново
         topic = self.topics.get((exam_name, name))
         if topic is None:
             raise ValidationError("Тема не найдена")
@@ -100,11 +98,11 @@ class Planner:
 
     @staticmethod
     def _is_auto(value):
-        """True, если сложность не задана вручную: пусто или слово «авто»."""
+        # true, если сложность не задана руками
         return value is None or str(value).strip().lower() in ("", AUTO)
 
     def set_status(self, exam_name, name, status):
-        """Отмечает тему выполненной (done) или возвращает её в план (todo)."""
+        # отмечает тему выполненной или возвращает в план
         topic = self.topics.get((exam_name, name))
         if topic is None:
             raise ValidationError("Тема не найдена")
@@ -112,54 +110,51 @@ class Planner:
             raise ValidationError("Некорректный статус темы")
         topic.status = status
 
-    # --- построение плана ----------------------------------------------
+    # --- построение плана ---
     def build_plan(self, today=None):
-        """Строит self.plan заново, начиная с сегодняшнего дня; возвращает темы, которые не поместились.
-
-        Часы каждого события раскладываются равномерно на все учебные дни до него (а не ставятся
-        в первые дни подряд); сначала идут самые сложные темы. День перед событием отдан
-        под повторение, в день самого события занятий нет.
-        """
+        # строит план заново от сегодняшнего дня, возвращает темы, которые не успели
+        # часы события делим поровну на все учебные дни до него, сложные темы идут первыми
+        # за день до события только повторение, в день события занятий нет
         today = today or date.today()
-        plan = {}  # итог: {дата: [(событие, тема, часы)]}
-        load = {}  # сколько часов уже занято в каждый день: {дата: часы}
+        plan = {}  # сам план, {дата: [(событие, тема, часы)]}
+        load = {}  # сколько часов уже занято в каждый день
 
         def add(day, exam, topic, hours):
-            # кладём порцию часов в план и учитываем, сколько времени в этот день уже занято
+            # добавляем часы в план и считаем, сколько занято в этот день
             items = plan.setdefault(day, [])
             for index, (e, t, h) in enumerate(items):
-                if (e, t) == (exam, topic):  # та же тема в тот же день: суммируем в одну запись
+                if (e, t) == (exam, topic):  # если эта тема уже есть в этот день, просто прибавляем часы
                     items[index] = (e, t, h + hours)
                     break
             else:
                 items.append((exam, topic, hours))
             load[day] = load.get(day, 0) + hours
-            # запоминаем первый день, на который поставили тему (нужно для пересчёта)
+            # запоминаем первый день темы, нужно для пересчёта
             known = self.topics.get((exam, topic))
             if known is not None and known.planned_day is None:
                 known.planned_day = day
 
-        # будущие события по возрастанию даты: ближайшее планируем первым
+        # будущие события по дате, ближайшее первым
         upcoming = sorted((e for e in self.exams.values() if e.date > today),
                           key=lambda e: e.date)
-        # дни событий и дни перед ними закрыты для учёбы (там экзамен или повторение)
+        # в дни событий и накануне не учимся
         blocked = {d for e in upcoming for d in (e.date, e.date - timedelta(days=1))}
-        # сначала ставим повторение на день перед каждым событием
+        # сначала ставим повторение на день перед событием
         for exam in upcoming:
             eve = exam.date - timedelta(days=1)
             if eve >= today:
                 add(eve, exam.name, REVISION, min(REVISION_HOURS[exam.kind], self.daily_limit))
 
-        at_risk = []  # темы, которые не успеваем разместить до срока
+        at_risk = []  # темы, которые не успеваем
         for exam in upcoming:
-            last_study_day = exam.date - timedelta(days=2)  # за день до события идёт повторение
+            last_study_day = exam.date - timedelta(days=2)  # последний день учёбы, накануне повторение
             todo = [t for t in self.topics.values()
                     if t.exam == exam.name and t.status == TODO]
-            # самые сложные темы первыми, при равной сложности по алфавиту
+            # сложные темы первыми, при одинаковой сложности по алфавиту
             todo.sort(key=lambda t: (-t.difficulty, t.name))
-            left = {t.key: t.hours for t in todo}  # сколько часов каждой темы ещё не поставлено
+            left = {t.key: t.hours for t in todo}  # сколько часов каждой темы ещё надо поставить
             total = sum(left.values())
-            # учебные дни до срока: не закрытые и со свободным временем
+            # учебные дни до срока, где есть свободное время
             days = []
             day = today
             while day <= last_study_day:
@@ -167,23 +162,23 @@ class Planner:
                     days.append(day)
                 day += timedelta(days=1)
             if total and days:
-                # k-й час события ставим на день номер floor((k + 0.5) * дней / часов): часы
-                # равномерно размазываются по ВСЕМУ сроку, а не копятся в первых днях
+                # k-й час ставим на день номер floor((k + 0.5) * дней / часов),
+                # так часы расходятся по всему сроку, а не лежат в первых днях
                 allot = [0] * len(days)
                 for k in range(total):
                     allot[int((k + 0.5) * len(days) / total)] += 1
-                carry = 0  # часы, которые не влезли в предыдущие дни (лимит дня, лимит на тему)
+                carry = 0  # часы, которые не влезли в прошлые дни
                 for day, planned in zip(days, allot):
                     budget = min(planned + carry, self.daily_limit - load.get(day, 0))
                     carry = planned + carry - budget
-                    for topic in todo:  # темы по порядку: сначала сложные
+                    for topic in todo:  # по порядку, сложные первыми
                         chunk = min(left[topic.key], budget, self.max_chunk)
                         if chunk > 0:
                             add(day, exam.name, topic.name, chunk)
                             left[topic.key] -= chunk
                             budget -= chunk
-                    carry += budget  # не израсходованное из-за лимита на тему переносим дальше
-            # доукладка: часы, которые не влезли из-за лимита на тему, ставим в самые свободные дни срока
+                    carry += budget  # что не использовали из-за лимита на тему, переносим дальше
+            # если часы остались, ставим их в самые свободные дни
             for topic in todo:
                 for day in sorted(days, key=lambda d: (load.get(d, 0), d)):
                     if left[topic.key] <= 0:
@@ -193,19 +188,17 @@ class Planner:
                     if chunk > 0:
                         add(day, exam.name, topic.name, chunk)
                         left[topic.key] -= chunk
-            # что не поставилось даже так, действительно не помещается в срок
+            # если и так не влезло, тема не успевает
             at_risk += [t for t in todo if left[t.key] > 0]
         self.plan = plan
         return at_risk
 
     def replan(self, today=None):
-        """Пересчитывает план и сообщает, что изменилось.
-
-        Возвращает (moved, at_risk): moved - невыполненные темы, день которых уже прошёл
-        (пропущенные), они планируются заново с сегодняшнего дня; at_risk - темы, не успевающие в срок.
-        """
+        # пересчитывает план и возвращает (moved, at_risk)
+        # moved это невыполненные темы с прошедшим днём, их ставим заново с сегодня
+        # at_risk это темы, которые не успеваем
         today = today or date.today()
-        # пропущенная тема: не выполнена, а день, на который её ставили, уже позади
+        # пропущенная тема, не выполнена, а её день уже прошёл
         moved = [t for t in self.topics.values()
                  if t.status == TODO and t.planned_day is not None and t.planned_day < today]
         for topic in moved:
@@ -214,5 +207,5 @@ class Planner:
         return moved, at_risk
 
     def day_load(self, day):
-        """Сумма часов за день: от неё зависит цвет клетки календаря."""
+        # сумма часов за день, по ней красится календарь
         return sum(hours for _, _, hours in self.plan.get(day, []))

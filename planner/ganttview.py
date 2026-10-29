@@ -5,12 +5,9 @@ TODO_BAR, REVISION_BAR, DONE_ROW, RISK_ROW = "todo", "revision", "done", "risk"
 
 
 def gantt_rows(planner, at_risk=()):
-    """Строки для диаграммы Ганта: словари с ключами exam, name, start, end, kind.
-
-    У запланированных тем и дней повторения есть полоска (start..end); у выполненных
-    и не поместившихся тем строка без дат. Порядок: по дате события, потом по началу.
-    """
-    span = {}  # (событие, тема) -> [первый день, последний день]
+    # строки для диаграммы Ганта, у каждой есть exam, name, start, end и kind
+    # у тем в плане есть полоска, у выполненных и не успеваемых только строка без дат
+    span = {}  # (событие, тема) и [первый день, последний день]
     for day, items in planner.plan.items():
         for exam, topic, _ in items:
             first_last = span.setdefault((exam, topic), [day, day])
