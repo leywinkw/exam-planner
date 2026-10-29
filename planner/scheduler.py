@@ -116,7 +116,8 @@ class Planner:
     def build_plan(self, today=None):
         """Строит self.plan заново, начиная с сегодняшнего дня; возвращает темы, которые не поместились.
 
-        Сначала идут самые сложные темы ближайшего события. День перед событием отдан
+        Часы каждого события раскладываются равномерно на все учебные дни до него (а не ставятся
+        в первые дни подряд); сначала идут самые сложные темы. День перед событием отдан
         под повторение, в день самого события занятий нет.
         """
         today = today or date.today()
@@ -125,7 +126,13 @@ class Planner:
 
         def add(day, exam, topic, hours):
             # кладём порцию часов в план и учитываем, сколько времени в этот день уже занято
-            plan.setdefault(day, []).append((exam, topic, hours))
+            items = plan.setdefault(day, [])
+            for index, (e, t, h) in enumerate(items):
+                if (e, t) == (exam, topic):  # та же тема в тот же день: суммируем в одну запись
+                    items[index] = (e, t, h + hours)
+                    break
+            else:
+                items.append((exam, topic, hours))
             load[day] = load.get(day, 0) + hours
             # запоминаем первый день, на который поставили тему (нужно для пересчёта)
             known = self.topics.get((exam, topic))
@@ -150,19 +157,44 @@ class Planner:
                     if t.exam == exam.name and t.status == TODO]
             # самые сложные темы первыми, при равной сложности по алфавиту
             todo.sort(key=lambda t: (-t.difficulty, t.name))
+            left = {t.key: t.hours for t in todo}  # сколько часов каждой темы ещё не поставлено
+            total = sum(left.values())
+            # учебные дни до срока: не закрытые и со свободным временем
+            days = []
+            day = today
+            while day <= last_study_day:
+                if day not in blocked and self.daily_limit - load.get(day, 0) > 0:
+                    days.append(day)
+                day += timedelta(days=1)
+            if total and days:
+                # k-й час события ставим на день номер floor((k + 0.5) * дней / часов): часы
+                # равномерно размазываются по ВСЕМУ сроку, а не копятся в первых днях
+                allot = [0] * len(days)
+                for k in range(total):
+                    allot[int((k + 0.5) * len(days) / total)] += 1
+                carry = 0  # часы, которые не влезли в предыдущие дни (лимит дня, лимит на тему)
+                for day, planned in zip(days, allot):
+                    budget = min(planned + carry, self.daily_limit - load.get(day, 0))
+                    carry = planned + carry - budget
+                    for topic in todo:  # темы по порядку: сначала сложные
+                        chunk = min(left[topic.key], budget, self.max_chunk)
+                        if chunk > 0:
+                            add(day, exam.name, topic.name, chunk)
+                            left[topic.key] -= chunk
+                            budget -= chunk
+                    carry += budget  # не израсходованное из-за лимита на тему переносим дальше
+            # доукладка: часы, которые не влезли из-за лимита на тему, ставим в самые свободные дни срока
             for topic in todo:
-                # за день ставим не больше max_chunk часов одной темы, остаток переходит на следующие дни
-                left = topic.hours
-                day = today
-                while left > 0 and day <= last_study_day:
-                    free = self.daily_limit - load.get(day, 0)  # свободно часов в этот день
-                    if day not in blocked and free > 0:
-                        chunk = min(free, left, self.max_chunk)
+                for day in sorted(days, key=lambda d: (load.get(d, 0), d)):
+                    if left[topic.key] <= 0:
+                        break
+                    already = sum(h for e, t, h in plan.get(day, []) if (e, t) == (exam.name, topic.name))
+                    chunk = min(left[topic.key], self.daily_limit - load.get(day, 0), self.max_chunk - already)
+                    if chunk > 0:
                         add(day, exam.name, topic.name, chunk)
-                        left -= chunk
-                    day += timedelta(days=1)
-                if left > 0:  # дни кончились, а часы остались: тема не помещается
-                    at_risk.append(topic)
+                        left[topic.key] -= chunk
+            # что не поставилось даже так, действительно не помещается в срок
+            at_risk += [t for t in todo if left[t.key] > 0]
         self.plan = plan
         return at_risk
 

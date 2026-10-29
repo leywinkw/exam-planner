@@ -49,6 +49,9 @@
 ## Input fields (2026-10-29)
 - Hints stay visible while a field is focused and empty (caret at the start, thick accent caret via style); first typed char replaces the hint. Short dates: '25' -> nearest future 25th, '25.11' -> nearest 25 Nov (planner/models.py next_date, parse_date). Date picker popup (ui/datepicker.py) opens on click on the date field; past days disabled. 80 tests green.
 
+## Even spread (2026-10-30)
+- build_plan now spreads each event's hours evenly over ALL study days before the revision day (k-th hour -> day floor((k+0.5)*days/hours)), then tops up leftovers into the freest days; same-day entries of one topic are merged. Fixes: topics no longer piled into the first day with an empty period before the exam. 83 tests green; deck slide 6, report 4.3/5.2, README, examples and screenshots updated.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.

@@ -10,15 +10,45 @@ from planner.storage import Storage
 TODAY = date(2026, 10, 1)
 
 
-def test_topic_is_spread_over_days_in_small_chunks():
+def study_days(planner, name=None):
+    """Дни, на которые стоят занятия (без повторения), и часы по дням."""
+    return {day: sum(h for _, t, h in items if t != REVISION and (name is None or t == name))
+            for day, items in sorted(planner.plan.items())
+            if any(t != REVISION and (name is None or t == name) for _, t, _ in items)}
+
+
+def test_topic_is_spread_over_the_whole_period():
     p = Planner(daily_limit=6, max_chunk=2)
     p.add_exam("E", TODAY + timedelta(days=10), TODAY)
     p.add_topic("E", "Big", 5)
     assert p.build_plan(TODAY) == []
-    days = sorted(day for day, items in p.plan.items() if any(t == "Big" for _, t, _ in items))
-    assert days == [TODAY, TODAY + timedelta(days=1), TODAY + timedelta(days=2)]
-    hours = [h for day in days for _, t, h in p.plan[day] if t == "Big"]
-    assert hours == [2, 2, 1]
+    days = study_days(p, "Big")
+    assert sum(days.values()) == 5 and max(days.values()) <= 2
+    assert len(days) >= 4  # не в одни и те же первые дни
+    assert (max(days) - min(days)).days >= 6  # растянуто почти на весь срок до повторения
+
+
+def test_few_hours_are_not_dumped_into_the_first_day():
+    """Три часа за 10 дней до контрольной: по часу через несколько дней, а не 3 часа сразу."""
+    p = Planner(daily_limit=4)
+    c = p.add_exam("Физика", TODAY + timedelta(days=10), TODAY, kind=CONTROL)
+    for name in ("a", "b", "c"):
+        p.add_topic(c.name, name, 1)
+    assert p.build_plan(TODAY) == []
+    days = study_days(p)
+    assert len(days) == 3 and all(h == 1 for h in days.values())
+    assert (max(days) - min(days)).days >= 6
+    assert min(days) <= TODAY + timedelta(days=2)  # и начинается без долгого ожидания
+
+
+def test_hours_are_spread_evenly_one_per_day():
+    p = Planner(daily_limit=4, max_chunk=2)
+    p.add_exam("E", TODAY + timedelta(days=10), TODAY)  # учебные дни: сегодня ... +8, всего 9
+    for name in ("a", "b", "c"):
+        p.add_topic("E", name, 3)
+    assert p.build_plan(TODAY) == []
+    days = study_days(p)
+    assert len(days) == 9 and set(days.values()) == {1}  # 9 часов на 9 дней: ровно по часу
 
 
 def test_max_chunk_one_hour():
@@ -26,7 +56,18 @@ def test_max_chunk_one_hour():
     p.add_exam("E", TODAY + timedelta(days=10), TODAY)
     p.add_topic("E", "T", 3)
     p.build_plan(TODAY)
-    assert [h for day in sorted(p.plan) for _, t, h in p.plan[day] if t == "T"] == [1, 1, 1]
+    days = study_days(p, "T")
+    assert len(days) == 3 and set(days.values()) == {1}
+
+
+def test_leftover_hours_fill_free_days():
+    """Если из-за лимита на тему часть часов не встала, они уходят в свободные дни, а не в «не успеваем»."""
+    p = Planner(daily_limit=4, max_chunk=2)
+    p.add_exam("E", TODAY + timedelta(days=5), TODAY)
+    p.add_topic("E", "A", 5)
+    p.add_topic("E", "B", 5)
+    assert p.build_plan(TODAY) == []
+    assert all(p.day_load(day) <= 4 for day in p.plan)
 
 
 def test_chunk_never_exceeds_limits():
