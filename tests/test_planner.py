@@ -274,3 +274,39 @@ def test_month_shift_is_clamped():
     from planner.calview import shift_month
     assert shift_month(9999, 12, 1) == (9999, 12)
     assert shift_month(1, 1, -1) == (1, 1)
+
+
+# --- короткий ввод даты ---------------------------------------------------
+def test_short_date_day_only():
+    from planner.models import parse_date
+    today = date(2026, 10, 17)
+    assert parse_date("25", today) == date(2026, 10, 25)   # число ещё впереди в этом месяце
+    assert parse_date("5", today) == date(2026, 11, 5)     # число уже прошло: следующий месяц
+    assert parse_date("17", today) == date(2026, 11, 17)   # сегодня не подходит, нужна будущая дата
+
+
+def test_short_date_skips_months_without_that_day():
+    from planner.models import parse_date
+    assert parse_date("31", date(2026, 4, 10)) == date(2026, 5, 31)   # в апреле 30 дней
+    assert parse_date("30", date(2026, 1, 31)) == date(2026, 3, 30)   # в феврале нет 30-го
+
+
+def test_short_date_day_and_month():
+    from planner.models import parse_date
+    today = date(2026, 10, 17)
+    assert parse_date("25.11", today) == date(2026, 11, 25)
+    assert parse_date("5.3", today) == date(2027, 3, 5)               # в этом году март уже был
+    assert parse_date("29.02", today) == date(2028, 2, 29)            # ближайший високосный год
+
+
+@pytest.mark.parametrize("text", ["0", "32", "31.02", "15.13", "1.2.3.4", "25,11"])
+def test_short_date_bad_values(text):
+    from planner.models import parse_date
+    with pytest.raises(ValidationError):
+        parse_date(text, date(2026, 10, 17))
+
+
+def test_full_date_unchanged_by_short_rules():
+    from planner.models import parse_date
+    assert parse_date("05.11.2026", date(2026, 10, 17)) == date(2026, 11, 5)
+    assert parse_date("2026-11-05") == date(2026, 11, 5)

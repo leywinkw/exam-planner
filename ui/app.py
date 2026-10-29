@@ -9,6 +9,7 @@ from planner.errors import PlannerError
 from planner.models import CONTROL, CONTROL_PREFIX, DONE, EXAM, TODO, parse_date
 from planner.storage import Storage
 from ui import theme
+from ui.datepicker import DatePicker
 from ui.dialogs import MultiTopicDialog
 from ui.gantt import GanttChart
 from ui.theme import ACCENT, CARD, MUTED, TEXT, font
@@ -56,6 +57,7 @@ class App(ttk.Frame):
         self.topic_ids = {}
         self.exam_ids = {}
         self.note = ""
+        self.date_picker = None  # открытый календарь выбора даты
         self.at_risk = self.planner.build_plan(self.today)  # темы, не поместившиеся в срок (красным)
 
         theme.apply_style(self.root)
@@ -99,9 +101,14 @@ class App(ttk.Frame):
         self.exam_name.pack(fill="x", pady=(6, 6))
         row = ttk.Frame(parent)
         row.pack(fill="x")
-        self.exam_date = HintEntry(row, "ДД.ММ.ГГГГ", width=11)
+        self.exam_date = HintEntry(row, "Дата: 25 или 25.11", width=18)
         self.exam_date.pack(side="left")
-        self.exam_kind = ttk.Combobox(row, state="readonly", width=12, values=list(KIND_LABELS))
+        # клик по полю открывает календарь; короткий ввод («25», «25.11») превращается в полную дату
+        self.exam_date.bind("<Button-1>", lambda _e: self.open_date_picker(), add="+")
+        self.exam_date.bind("<FocusOut>", lambda _e: self.normalize_date(), add="+")
+        self.exam_date.bind("<Return>", lambda _e: self.normalize_date(), add="+")
+        self.exam_date.bind("<Escape>", lambda _e: self.close_date_picker(), add="+")
+        self.exam_kind = ttk.Combobox(row, state="readonly", width=11, values=list(KIND_LABELS))
         self.exam_kind.set("Экзамен")
         self.exam_kind.pack(side="left", padx=8)
         ttk.Button(row, text="Добавить", style="Accent.TButton",
@@ -225,8 +232,41 @@ class App(ttk.Frame):
                                   date.today(), kind)
             self.exam_name.delete(0, "end")
             self.exam_date.delete(0, "end")
+            self.close_date_picker()
         if self._run(go):
             self._changed(note="Теперь добавьте темы: выберите событие ниже и тему из списка.")
+
+    def open_date_picker(self):
+        """Показывает календарь под полем даты; если в поле уже есть дата, открывает её месяц."""
+        if self.date_picker is not None and self.date_picker.winfo_exists():
+            return
+        try:
+            start = parse_date(self.exam_date.get()) if self.exam_date.get() else None
+        except PlannerError:
+            start = None
+        self.date_picker = DatePicker(self.exam_date, self.pick_date, start)
+
+    def close_date_picker(self):
+        if self.date_picker is not None:
+            self.date_picker.close()
+
+    def pick_date(self, day):
+        """Число выбрано в календаре: вставляем полную дату в поле."""
+        self.exam_date.delete(0, "end")
+        self.exam_date.insert(0, day.strftime("%d.%m.%Y"))
+
+    def normalize_date(self):
+        """Короткий ввод («25», «25.11») заменяем полной ближайшей датой, чтобы было видно, что получилось."""
+        text = self.exam_date.get()
+        if not text:
+            return
+        try:
+            full = parse_date(text).strftime("%d.%m.%Y")
+        except PlannerError:
+            return  # ошибку покажет кнопка «Добавить»
+        if full != text:
+            self.exam_date.delete(0, "end")
+            self.exam_date.insert(0, full)
 
     def remove_exam(self):
         name = self.exam_ids.get(self._selected(self.exam_tree))

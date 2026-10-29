@@ -46,9 +46,10 @@ def apply_style(root):
 
     style.configure("Topic.TCheckbutton", background=CARD, foreground=TEXT, font=font(12))
     style.map("Topic.TCheckbutton", background=[("active", CARD)], foreground=[("active", TEXT)])
-    style.configure("TEntry", fieldbackground="white", bordercolor=BORDER, padding=5)
+    # курсор ввода делаем толстым и цветным, чтобы его было видно на светлом поле
+    style.configure("TEntry", fieldbackground="white", bordercolor=BORDER, padding=5, insertcolor=ACCENT, insertwidth=2)
     style.configure("TCombobox", fieldbackground="white", bordercolor=BORDER, padding=5,
-                    arrowcolor=MUTED)
+                    arrowcolor=MUTED, insertcolor=ACCENT, insertwidth=2)
     style.map("TCombobox", fieldbackground=[("readonly", "white")],
               selectbackground=[("readonly", "white")], selectforeground=[("readonly", TEXT)])
     style.configure("TSpinbox", fieldbackground="white", bordercolor=BORDER, padding=4)

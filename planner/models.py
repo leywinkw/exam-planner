@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 
 from planner.errors import ValidationError
@@ -11,8 +12,35 @@ EXAM, CONTROL = "exam", "control"  # тип события
 CONTROL_PREFIX = "Контрольная · "
 
 
-def parse_date(text):
-    """Принимает дату ДД.ММ.ГГГГ или ГГГГ-ММ-ДД, иначе выбрасывает ValidationError."""
+def next_date(day, month=None, today=None):
+    """Ближайшая будущая дата с таким числом (и месяцем, если он указан); None, если такой даты нет.
+
+    Дата считается ближайшей, если она строго позже сегодняшней: «25» в день 25-го даст 25-е следующего месяца.
+    """
+    today = today or date.today()
+    # перебираем месяцы (или годы, если месяц указан) вперёд, пока не найдём существующую дату в будущем
+    for step in range(0, 96):
+        if month is None:
+            index = today.year * 12 + (today.month - 1) + step
+            year, current = index // 12, index % 12 + 1
+        else:
+            year, current = today.year + step // 12, month
+            if step % 12:
+                continue  # для «день.месяц» шагаем по годам
+        try:
+            candidate = date(year, current, day)
+        except ValueError:
+            continue  # такого числа в этом месяце нет (31 апреля, 29 февраля), идём дальше
+        if candidate > today:
+            return candidate
+    return None
+
+
+def parse_date(text, today=None):
+    """Принимает дату ДД.ММ.ГГГГ или ГГГГ-ММ-ДД; можно короче: «25» или «25.11» (берётся ближайшая будущая).
+
+    Иначе выбрасывает ValidationError.
+    """
     text = str(text).strip()
     # пробуем форматы по очереди: strptime выбрасывает ValueError, если строка не подходит
     for fmt in DATE_FORMATS:
@@ -20,6 +48,14 @@ def parse_date(text):
             return datetime.strptime(text, fmt).date()
         except ValueError:
             continue
+    # короткий ввод: только число или число и месяц, без года
+    short = re.fullmatch(r"(\d{1,2})(?:[./-](\d{1,2}))?", text)
+    if short:
+        day = int(short.group(1))
+        month = int(short.group(2)) if short.group(2) else None
+        found = next_date(day, month, today) if 1 <= day <= 31 and (month is None or 1 <= month <= 12) else None
+        if found:
+            return found
     raise ValidationError("Дата должна быть в формате ДД.ММ.ГГГГ")
 
 

@@ -46,6 +46,9 @@
 - Comments and docstrings in planner/, ui/, tools and tests are now in Russian (user request; more comments where unclear).
 - code_screens.py renders 6 images of real code (syntax highlight, real line numbers, located by text markers) into docs/screens/code_*.png; deck has 6 code slides (19 slides total).
 
+## Input fields (2026-10-29)
+- Hints stay visible while a field is focused and empty (caret at the start, thick accent caret via style); first typed char replaces the hint. Short dates: '25' -> nearest future 25th, '25.11' -> nearest 25 Nov (planner/models.py next_date, parse_date). Date picker popup (ui/datepicker.py) opens on click on the date field; past days disabled. 80 tests green.
+
 ## Next
 1. Gantt tab done (ui/gantt.py on Canvas, planner/ganttview.py + tests, 45 green); look not seen by me, user to check the tab.
 2. Close; optional polish.
